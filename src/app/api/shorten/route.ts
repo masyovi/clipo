@@ -1,9 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/config";
 import { db } from "@/lib/db";
 import { nanoid } from "nanoid";
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Silakan login terlebih dahulu" },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const { url: originalUrl, title } = body;
 
@@ -17,23 +28,22 @@ export async function POST(request: NextRequest) {
     // Validate URL format
     let parsedUrl: URL;
     try {
-      // Add protocol if missing
       const urlToParse = originalUrl.match(/^https?:\/\//)
         ? originalUrl
         : `https://${originalUrl}`;
       parsedUrl = new URL(urlToParse);
     } catch {
       return NextResponse.json(
-        { error: "Invalid URL format" },
+        { error: "Format URL tidak valid" },
         { status: 400 }
       );
     }
 
     const finalUrl = parsedUrl.toString();
 
-    // Check if URL already exists
+    // Check if URL already exists for this user
     const existing = await db.shortUrl.findFirst({
-      where: { originalUrl: finalUrl },
+      where: { originalUrl: finalUrl, userId: session.user.id },
     });
 
     if (existing) {
@@ -64,6 +74,7 @@ export async function POST(request: NextRequest) {
         originalUrl: finalUrl,
         shortCode,
         title: title || null,
+        userId: session.user.id,
       },
     });
 
@@ -82,7 +93,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error creating short URL:", error);
     return NextResponse.json(
-      { error: "Failed to create short URL" },
+      { error: "Gagal membuat URL pendek" },
       { status: 500 }
     );
   }

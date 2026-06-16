@@ -78,3 +78,31 @@ Work Log:
 Stage Summary:
 - All features verified working: shorten, copy, list, delete, responsive layout
 - No errors in dev log
+
+---
+Task ID: 6
+Agent: Main
+Task: Add authentication (email/password + Google OAuth) to URL shortener
+
+Work Log:
+- Updated Prisma schema: added User, Account, Session models, linked ShortUrl to User
+- Installed bcryptjs for password hashing
+- Created NextAuth config with CredentialsProvider + GoogleProvider
+- Created /api/auth/[...nextauth] route for NextAuth handler
+- Created /api/register route with Zod validation, bcrypt hashing, duplicate check
+- Created AuthProvider wrapper component for SessionProvider
+- Updated layout.tsx to wrap children with AuthProvider
+- Created next-auth type declarations for session.user.id
+- Updated /api/shorten to require session and filter by userId
+- Updated /api/links GET to filter by userId, DELETE to verify ownership
+- Built complete auth UI: login form, register form, Google button, show/hide password
+- Conditional rendering: AuthForm when not logged in, Dashboard when logged in
+- Header shows user avatar, name, and logout button when authenticated
+- Full e2e verified: Register → Login → Dashboard → Shorten URL → Link appears in list
+
+Stage Summary:
+- Complete auth system with email/password registration and Google OAuth
+- User-scoped links: each user only sees their own links
+- JWT session strategy with 30-day expiry
+- Clean login/register UI with toggle between views
+- All verified working through Agent Browser
