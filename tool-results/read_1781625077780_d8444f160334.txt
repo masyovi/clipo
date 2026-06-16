@@ -1,0 +1,1187 @@
+     1→     1→"use client";
+     2→     2→
+     3→     3→import { useState, useCallback, useEffect } from "react";
+     4→     4→import { motion, AnimatePresence } from "framer-motion";
+     5→     5→import { useSession, signIn, signOut } from "next-auth/react";
+     6→     6→import {
+     7→     7→  Link2,
+     8→     8→  Copy,
+     9→     9→  Check,
+    10→    10→  Trash2,
+    11→    11→  ExternalLink,
+    12→    12→  MousePointerClick,
+    13→    13→  Sparkles,
+    14→    14→  Globe,
+    15→    15→  Zap,
+    16→    16→  ArrowRight,
+    17→    17→  Clock,
+    18→    18→  ChevronDown,
+    19→    19→  Mail,
+    20→    20→  Lock,
+    21→    21→  User,
+    22→    22→  LogOut,
+    23→    23→  Loader2,
+    24→    24→  Eye,
+    25→    25→  EyeOff,
+    26→    26→  ArrowLeft,
+    27→    27→  Shield,
+    28→    28→  BarChart3,
+    29→    29→  LinkIcon,
+    30→    30→} from "lucide-react";
+    31→    31→import { Button } from "@/components/ui/button";
+    32→    32→import { Input } from "@/components/ui/input";
+    33→    33→import { Card, CardContent } from "@/components/ui/card";
+    34→    34→import { Badge } from "@/components/ui/badge";
+    35→    35→import { Label } from "@/components/ui/label";
+    36→    36→import { Separator } from "@/components/ui/separator";
+    37→    37→import {
+    38→    38→  AlertDialog,
+    39→    39→  AlertDialogAction,
+    40→    40→  AlertDialogCancel,
+    41→    41→  AlertDialogContent,
+    42→    42→  AlertDialogDescription,
+    43→    43→  AlertDialogFooter,
+    44→    44→  AlertDialogHeader,
+    45→    45→  AlertDialogTitle,
+    46→    46→} from "@/components/ui/alert-dialog";
+    47→    47→import { useToast } from "@/hooks/use-toast";
+    48→    48→
+    49→    49→// ─── Types ───────────────────────────────────────────────────────
+    50→    50→interface ShortLink {
+    51→    51→  id: string;
+    52→    52→  originalUrl: string;
+    53→    53→  shortCode: string;
+    54→    54→  shortUrl: string;
+    55→    55→  title: string | null;
+    56→    56→  clicks: number;
+    57→    57→  createdAt: string;
+    58→    58→}
+    59→    59→
+    60→    60→type AuthView = "login" | "register";
+    61→    61→type PageView = "landing" | "auth" | "dashboard";
+    62→    62→
+    63→    63→// ─── Fade-in wrapper ────────────────────────────────────────────
+    64→    64→const fadeUp = {
+    65→    65→  initial: { opacity: 0, y: 24 },
+    66→    66→  animate: { opacity: 1, y: 0 },
+    67→    67→  exit: { opacity: 0, y: -16 },
+    68→    68→};
+    69→    69→
+    70→    70→// ─── Landing Page ────────────────────────────────────────────────
+    71→    71→function LandingPage({ onAuth }: { onAuth: (v?: AuthView) => void }) {
+    72→    72→  return (
+    73→    73→    <div className="min-h-screen flex flex-col">
+    74→    74→      {/* Header */}
+    75→    75→      <header className="border-b bg-white/80 backdrop-blur-md sticky top-0 z-50">
+    76→    76→        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+    77→    77→          <div className="flex items-center gap-2">
+    78→    78→            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-teal-500 flex items-center justify-center">
+    79→    79→              <Link2 className="w-4 h-4 text-white" />
+    80→    80→            </div>
+    81→    81→            <span className="font-bold text-lg tracking-tight">
+    82→    82→              Pendek<span className="text-violet-600">.in</span>
+    83→    83→            </span>
+    84→    84→          </div>
+    85→    85→          <div className="flex items-center gap-2">
+    86→    86→            <Button
+    87→    87→              variant="ghost"
+    88→    88→              size="sm"
+    89→    89→              className="text-slate-600 hover:text-violet-600"
+    90→    90→              onClick={() => onAuth("login")}
+    91→    91→            >
+    92→    92→              Masuk
+    93→    93→            </Button>
+    94→    94→            <Button
+    95→    95→              size="sm"
+    96→    96→              className="bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-700 hover:to-violet-600 text-white shadow-md shadow-violet-500/20"
+    97→    97→              onClick={() => onAuth("register")}
+    98→    98→            >
+    99→    99→              Daftar Gratis
+   100→   100→            </Button>
+   101→   101→          </div>
+   102→   102→        </div>
+   103→   103→      </header>
+   104→   104→
+   105→   105→      <main className="flex-1">
+   106→   106→        {/* Hero */}
+   107→   107→        <section className="relative overflow-hidden">
+   108→   108→          <div className="absolute inset-0 bg-gradient-to-br from-violet-100/60 via-teal-50/40 to-transparent" />
+   109→   109→          <div className="relative max-w-5xl mx-auto px-4 sm:px-6 pt-12 sm:pt-20 pb-10 sm:pb-16">
+   110→   110→            <div className="grid lg:grid-cols-2 gap-8 sm:gap-12 items-center">
+   111→   111→              {/* Left: Copy */}
+   112→   112→              <motion.div {...fadeUp} transition={{ duration: 0.5 }} className="order-2 lg:order-1">
+   113→   113→                <Badge variant="secondary" className="mb-4 px-3 py-1 text-xs font-medium border-violet-200 bg-violet-50 text-violet-700">
+   114→   114→                  <Sparkles className="w-3 h-3 mr-1" />
+   115→   115→                  Cepat, Gratis, dan Mudah
+   116→   116→                </Badge>
+   117→   117→                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-slate-900 leading-tight mb-4">
+   118→   118→                  Pendekkan URL Kamu{" "}
+   119→   119→                  <span className="bg-gradient-to-r from-violet-600 to-teal-500 bg-clip-text text-transparent">
+   120→   120→                    Dalam Sekejap
+   121→   121→                  </span>
+   122→   122→                </h1>
+   123→   123→                <p className="text-slate-500 text-sm sm:text-base lg:text-lg max-w-lg mb-8 leading-relaxed">
+   124→   124→                  Ubah URL panjang yang sulit diingat jadi link pendek yang rapi. Dilengkapi tracking klik, tanpa batas, dan gratis selamanya.
+   125→   125→                </p>
+   126→   126→                <div className="flex flex-col sm:flex-row gap-3">
+   127→   127→                  <Button
+   128→   128→                    size="lg"
+   129→   129→                    className="h-12 px-8 bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-700 hover:to-violet-600 text-white font-semibold shadow-lg shadow-violet-500/25 transition-all text-base"
+   130→   130→                    onClick={() => onAuth("register")}
+   131→   131→                  >
+   132→   132→                    Mulai Sekarang — Gratis
+   133→   133→                    <ArrowRight className="w-4 h-4 ml-2" />
+   134→   134→                  </Button>
+   135→   135→                  <Button
+   136→   136→                    variant="outline"
+   137→   137→                    size="lg"
+   138→   138→                    className="h-12 px-6 border-slate-200 hover:bg-slate-50 text-slate-600"
+   139→   139→                    onClick={() => onAuth("login")}
+   140→   140→                  >
+   141→   141→                    Sudah punya akun? Masuk
+   142→   142→                  </Button>
+   143→   143→                </div>
+   144→   144→              </motion.div>
+   145→   145→
+   146→   146→              {/* Right: Illustration */}
+   147→   147→              <motion.div
+   148→   148→                initial={{ opacity: 0, scale: 0.92 }}
+   149→   149→                animate={{ opacity: 1, scale: 1 }}
+   150→   150→                transition={{ duration: 0.6, delay: 0.15 }}
+   151→   151→                className="order-1 lg:order-2"
+   152→   152→              >
+   153→   153→                <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-violet-500/10 border border-slate-200/50">
+   154→   154→                  <img
+   155→   155→                    src="/hero-illustration.png"
+   156→   156→                    alt="URL Shortener Illustration"
+   157→   157→                    className="w-full h-auto object-cover"
+   158→   158→                  />
+   159→   159→                </div>
+   160→   160→              </motion.div>
+   161→   161→            </div>
+   162→   162→          </div>
+   163→   163→        </section>
+   164→   164→
+   165→   165→        {/* How It Works */}
+   166→   166→        <section className="max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+   167→   167→          <motion.div {...fadeUp} transition={{ duration: 0.5, delay: 0.1 }} className="text-center mb-10">
+   168→   168→            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-3">
+   169→   169→              Cara Kerja
+   170→   170→            </h2>
+   171→   171→            <p className="text-slate-500 text-sm sm:text-base max-w-md mx-auto">
+   172→   172→              Tiga langkah sederhana untuk memendekkan URL
+   173→   173→            </p>
+   174→   174→          </motion.div>
+   175→   175→
+   176→   176→          <div className="grid sm:grid-cols-3 gap-6 sm:gap-8">
+   177→   177→            {[
+   178→   178→              {
+   179→   179→                step: "1",
+   180→   180→                icon: LinkIcon,
+   181→   181→                title: "Tempel URL",
+   182→   182→                desc: "Masukkan URL panjang yang ingin kamu pendekkan ke kolom input.",
+   183→   183→                color: "from-violet-500 to-violet-400",
+   184→   184→                shadow: "shadow-violet-500/20",
+   185→   185→              },
+   186→   186→              {
+   187→   187→                step: "2",
+   188→   188→                icon: Zap,
+   189→   189→                title: "Klik Pendekkan",
+   190→   190→                desc: "Tekan tombol dan langsung dapat URL pendek yang siap pakai.",
+   191→   191→                color: "from-amber-500 to-orange-400",
+   192→   192→                shadow: "shadow-amber-500/20",
+   193→   193→              },
+   194→   194→              {
+   195→   195→                step: "3",
+   196→   196→                icon: BarChart3,
+   197→   197→                title: "Pantau & Bagikan",
+   198→   198→                desc: "Salin URL pendek, bagikan ke mana saja, dan pantau jumlah klik.",
+   199→   199→                color: "from-teal-500 to-emerald-400",
+   200→   200→                shadow: "shadow-teal-500/20",
+   201→   201→              },
+   202→   202→            ].map(({ step, icon: Icon, title, desc, color, shadow }, idx) => (
+   203→   203→              <motion.div
+   204→   204→                key={step}
+   205→   205→                {...fadeUp}
+   206→   206→                transition={{ duration: 0.45, delay: 0.15 + idx * 0.1 }}
+   207→   207→              >
+   208→   208→                <Card className="h-full border-slate-200/80 hover:shadow-lg transition-shadow">
+   209→   209→                  <CardContent className="p-6 sm:p-8">
+   210→   210→                    <div className="flex items-center gap-3 mb-4">
+   211→   211→                      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center shadow-lg ${shadow}`}>
+   212→   212→                        <Icon className="w-5 h-5 text-white" />
+   213→   213→                      </div>
+   214→   214→                      <span className="text-xs font-bold text-slate-300">LANGKAH {step}</span>
+   215→   215→                    </div>
+   216→   216→                    <h3 className="text-base font-bold text-slate-800 mb-2">{title}</h3>
+   217→   217→                    <p className="text-sm text-slate-500 leading-relaxed">{desc}</p>
+   218→   218→                  </CardContent>
+   219→   219→                </Card>
+   220→   220→              </motion.div>
+   221→   221→            ))}
+   222→   222→          </div>
+   223→   223→        </section>
+   224→   224→
+   225→   225→        {/* Features */}
+   226→   226→        <section className="bg-gradient-to-b from-slate-50 to-white py-12 sm:py-16">
+   227→   227→          <div className="max-w-5xl mx-auto px-4 sm:px-6">
+   228→   228→            <motion.div {...fadeUp} transition={{ duration: 0.5, delay: 0.1 }} className="text-center mb-10">
+   229→   229→              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-3">
+   230→   230→                Kenapa Pendek.in?
+   231→   231→              </h2>
+   232→   232→              <p className="text-slate-500 text-sm sm:text-base max-w-md mx-auto">
+   233→   233→                Fitur lengkap untuk kebutuhan link pendek kamu
+   234→   234→              </p>
+   235→   235→            </motion.div>
+   236→   236→
+   237→   237→            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+   238→   238→              {[
+   239→   239→                { icon: Zap, title: "Instan", desc: "Hasilnya langsung keluar dalam hitungan milidetik." },
+   240→   240→                { icon: Globe, title: "Gratis Selamanya", desc: "Tanpa biaya, tanpa limit, tanpa iklan." },
+   241→   241→                { icon: MousePointerClick, title: "Tracking Klik", desc: "Pantau berapa kali link pendek kamu dikunjungi." },
+   242→   242→                { icon: Shield, title: "Aman & Privat", desc: "Akun pribadi, link kamu hanya bisa dilihat olehmu." },
+   243→   243→                { icon: BarChart3, title: "Dashboard Bersih", desc: "Kelola semua link dari satu tempat yang rapi." },
+   244→   244→                { icon: LinkIcon, title: "URL Kustom", desc: "Tambahkan label agar link mudah dikenali." },
+   245→   245→              ].map(({ icon: Icon, title, desc }, idx) => (
+   246→   246→                <motion.div
+   247→   247→                  key={title}
+   248→   248→                  {...fadeUp}
+   249→   249→                  transition={{ duration: 0.4, delay: 0.1 + idx * 0.05 }}
+   250→   250→                >
+   251→   251→                  <div className="flex gap-3 p-4 rounded-xl hover:bg-white hover:shadow-md transition-all cursor-default">
+   252→   252→                    <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-100 to-teal-100 flex items-center justify-center shrink-0 mt-0.5">
+   253→   253→                      <Icon className="w-4 h-4 text-violet-600" />
+   254→   254→                    </div>
+   255→   255→                    <div>
+   256→   256→                      <h3 className="text-sm font-semibold text-slate-800 mb-0.5">{title}</h3>
+   257→   257→                      <p className="text-xs text-slate-500 leading-relaxed">{desc}</p>
+   258→   258→                    </div>
+   259→   259→                  </div>
+   260→   260→                </motion.div>
+   261→   261→              ))}
+   262→   262→            </div>
+   263→   263→          </div>
+   264→   264→        </section>
+   265→   265→
+   266→   266→        {/* CTA */}
+   267→   267→        <section className="max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+   268→   268→          <motion.div {...fadeUp} transition={{ duration: 0.5 }}>
+   269→   269→            <Card className="border-0 bg-gradient-to-r from-violet-600 to-teal-500 text-white overflow-hidden">
+   270→   270→              <CardContent className="p-8 sm:p-12 text-center relative">
+   271→   271→                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent)]" />
+   272→   272→                <div className="relative">
+   273→   273→                  <h2 className="text-2xl sm:text-3xl font-extrabold mb-3">
+   274→   274→                    Siap Memendekkan URL?
+   275→   275→                  </h2>
+   276→   276→                  <p className="text-violet-100 text-sm sm:text-base max-w-md mx-auto mb-6">
+   277→   277→                    Daftar gratis sekarang dan mulai kelola link kamu dengan lebih profesional.
+   278→   278→                  </p>
+   279→   279→                  <Button
+   280→   280→                    size="lg"
+   281→   281→                    className="h-12 px-8 bg-white text-violet-700 hover:bg-violet-50 font-semibold shadow-xl transition-all text-base"
+   282→   282→                    onClick={() => onAuth("register")}
+   283→   283→                  >
+   284→   284→                    Buat Akun Gratis
+   285→   285→                    <ArrowRight className="w-4 h-4 ml-2" />
+   286→   286→                  </Button>
+   287→   287→                </div>
+   288→   288→              </CardContent>
+   289→   289→            </Card>
+   290→   290→          </motion.div>
+   291→   291→        </section>
+   292→   292→      </main>
+   293→   293→
+   294→   294→      {/* Footer */}
+   295→   295→      <footer className="border-t bg-white mt-auto">
+   296→   296→        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+   297→   297→          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400">
+   298→   298→            <div className="flex items-center gap-2">
+   299→   299→              <div className="w-5 h-5 rounded bg-gradient-to-br from-violet-600 to-teal-500 flex items-center justify-center">
+   300→   300→                <Link2 className="w-2.5 h-2.5 text-white" />
+   301→   301→              </div>
+   302→   302→              <span className="font-semibold text-slate-500">
+   303→   303→                Pendek<span className="text-violet-600">.in</span>
+   304→   304→              </span>
+   305→   305→            </div>
+   306→   306→            <p>&copy; {new Date().getFullYear()} Pendek.in &mdash; Pemendek URL Cepat & Gratis</p>
+   307→   307→          </div>
+   308→   308→        </div>
+   309→   309→      </footer>
+   310→   310→    </div>
+   311→   311→  );
+   312→   312→}
+   313→   313→
+   314→   314→// ─── Auth Form Component ────────────────────────────────────────
+   315→   315→function AuthForm({ onBack }: { onBack: () => void }) {
+   316→   316→  const [view, setView] = useState<AuthView>("login");
+   317→   317→  const [name, setName] = useState("");
+   318→   318→  const [email, setEmail] = useState("");
+   319→   319→  const [password, setPassword] = useState("");
+   320→   320→  const [showPassword, setShowPassword] = useState(false);
+   321→   321→  const [isLoading, setIsLoading] = useState(false);
+   322→   322→  const [error, setError] = useState("");
+   323→   323→  const { toast } = useToast();
+   324→   324→
+   325→   325→  const switchView = (v: AuthView) => {
+   326→   326→    setView(v);
+   327→   327→    setError("");
+   328→   328→  };
+   329→   329→
+   330→   330→  const handleLogin = async (e: React.FormEvent) => {
+   331→   331→    e.preventDefault();
+   332→   332→    if (!email.trim() || !password.trim()) {
+   333→   333→      setError("Email dan password wajib diisi");
+   334→   334→      return;
+   335→   335→    }
+   336→   336→    setIsLoading(true);
+   337→   337→    setError("");
+   338→   338→
+   339→   339→    const res = await signIn("credentials", {
+   340→   340→      email: email.trim(),
+   341→   341→      password,
+   342→   342→      redirect: false,
+   343→   343→    });
+   344→   344→
+   345→   345→    if (res?.error) {
+   346→   346→      setError("Email atau password salah");
+   347→   347→    }
+   348→   348→    setIsLoading(false);
+   349→   349→  };
+   350→   350→
+   351→   351→  const handleRegister = async (e: React.FormEvent) => {
+   352→   352→    e.preventDefault();
+   353→   353→    if (!name.trim() || !email.trim() || !password.trim()) {
+   354→   354→      setError("Semua field wajib diisi");
+   355→   355→      return;
+   356→   356→    }
+   357→   357→    if (password.length < 6) {
+   358→   358→      setError("Password minimal 6 karakter");
+   359→   359→      return;
+   360→   360→    }
+   361→   361→
+   362→   362→    setIsLoading(true);
+   363→   363→    setError("");
+   364→   364→
+   365→   365→    try {
+   366→   366→      const res = await fetch("/api/register", {
+   367→   367→        method: "POST",
+   368→   368→        headers: { "Content-Type": "application/json" },
+   369→   369→        body: JSON.stringify({ name: name.trim(), email: email.trim(), password }),
+   370→   370→      });
+   371→   371→
+   372→   372→      const data = await res.json();
+   373→   373→
+   374→   374→      if (!res.ok) {
+   375→   375→        setError(data.error || "Gagal mendaftar");
+   376→   376→        return;
+   377→   377→      }
+   378→   378→
+   379→   379→      toast({
+   380→   380→        title: "Registrasi berhasil!",
+   381→   381→        description: "Selamat datang di Pendek.in!",
+   382→   382→      });
+   383→   383→
+   384→   384→      const loginRes = await signIn("credentials", {
+   385→   385→        email: email.trim(),
+   386→   386→        password,
+   387→   387→        redirect: false,
+   388→   388→      });
+   389→   389→
+   390→   390→      if (loginRes?.error) {
+   391→   391→        setView("login");
+   392→   392→        setError("Registrasi berhasil. Silakan login manual.");
+   393→   393→      }
+   394→   394→    } catch {
+   395→   395→      setError("Gagal terhubung ke server");
+   396→   396→    } finally {
+   397→   397→      setIsLoading(false);
+   398→   398→    }
+   399→   399→  };
+   400→   400→
+   401→   401→  const handleGoogleLogin = () => {
+   402→   402→    signIn("google", { callbackUrl: "/" });
+   403→   403→  };
+   404→   404→
+   405→   405→  const isLogin = view === "login";
+   406→   406→
+   407→   407→  return (
+   408→   408→    <div className="min-h-screen flex flex-col bg-gradient-to-b from-slate-50 to-white">
+   409→   409→      {/* Header */}
+   410→   410→      <header className="border-b bg-white/80 backdrop-blur-md sticky top-0 z-50">
+   411→   411→        <div className="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
+   412→   412→          <Button
+   413→   413→            variant="ghost"
+   414→   414→            size="sm"
+   415→   415→            className="text-slate-400 hover:text-slate-600 -ml-2"
+   416→   416→            onClick={onBack}
+   417→   417→          >
+   418→   418→            <ArrowLeft className="w-4 h-4 mr-1" />
+   419→   419→            Kembali
+   420→   420→          </Button>
+   421→   421→          <div className="w-px h-5 bg-slate-200" />
+   422→   422→          <div className="flex items-center gap-2">
+   423→   423→            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-600 to-teal-500 flex items-center justify-center">
+   424→   424→              <Link2 className="w-3.5 h-3.5 text-white" />
+   425→   425→            </div>
+   426→   426→            <span className="font-bold text-sm tracking-tight">
+   427→   427→              Pendek<span className="text-violet-600">.in</span>
+   428→   428→            </span>
+   429→   429→          </div>
+   430→   430→        </div>
+   431→   431→      </header>
+   432→   432→
+   433→   433→      <main className="flex-1 flex items-center justify-center px-4 sm:px-6 py-12">
+   434→   434→        <motion.div
+   435→   435→          initial={{ opacity: 0, y: 20 }}
+   436→   436→          animate={{ opacity: 1, y: 0 }}
+   437→   437→          transition={{ duration: 0.4 }}
+   438→   438→          className="w-full max-w-md"
+   439→   439→        >
+   440→   440→          <div className="text-center mb-8">
+   441→   441→            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-600 to-teal-500 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-violet-500/20">
+   442→   442→              <Link2 className="w-8 h-8 text-white" />
+   443→   443→            </div>
+   444→   444→            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+   445→   445→              {isLogin ? "Selamat Datang" : "Buat Akun Baru"}
+   446→   446→            </h1>
+   447→   447→            <p className="text-slate-500 text-sm mt-2">
+   448→   448→              {isLogin
+   449→   449→                ? "Login untuk mulai memendekkan URL"
+   450→   450→                : "Daftar gratis dan mulai gunakan Pendek.in"}
+   451→   451→            </p>
+   452→   452→          </div>
+   453→   453→
+   454→   454→          <Card className="shadow-xl shadow-slate-200/50 border-slate-200/80">
+   455→   455→            <CardContent className="p-6 sm:p-8">
+   456→   456→              <Button
+   457→   457→                variant="outline"
+   458→   458→                className="w-full h-11 text-sm font-medium border-slate-200 hover:bg-slate-50 mb-4"
+   459→   459→                onClick={handleGoogleLogin}
+   460→   460→                disabled={isLoading}
+   461→   461→              >
+   462→   462→                <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
+   463→   463→                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
+   464→   464→                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+   465→   465→                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+   466→   466→                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+   467→   467→                </svg>
+   468→   468→                Lanjutkan dengan Google
+   469→   469→              </Button>
+   470→   470→
+   471→   471→              <div className="relative my-5">
+   472→   472→                <Separator />
+   473→   473→                <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-slate-400">
+   474→   474→                  atau dengan email
+   475→   475→                </span>
+   476→   476→              </div>
+   477→   477→
+   478→   478→              <AnimatePresence>
+   479→   479→                {error && (
+   480→   480→                  <motion.div
+   481→   481→                    initial={{ opacity: 0, height: 0 }}
+   482→   482→                    animate={{ opacity: 1, height: "auto" }}
+   483→   483→                    exit={{ opacity: 0, height: 0 }}
+   484→   484→                    className="overflow-hidden"
+   485→   485→                  >
+   486→   486→                    <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm">
+   487→   487→                      {error}
+   488→   488→                    </div>
+   489→   489→                  </motion.div>
+   490→   490→                )}
+   491→   491→              </AnimatePresence>
+   492→   492→
+   493→   493→              <form onSubmit={isLogin ? handleLogin : handleRegister} className="space-y-4">
+   494→   494→                {!isLogin && (
+   495→   495→                  <div className="space-y-1.5">
+   496→   496→                    <Label htmlFor="name" className="text-sm font-medium text-slate-700">
+   497→   497→                      Nama Lengkap
+   498→   498→                    </Label>
+   499→   499→                    <div className="relative">
+   500→   500→                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+   501→   501→                      <Input
+   502→   502→                        id="name"
+   503→   503→                        type="text"
+   504→   504→                        placeholder="Masukkan nama kamu"
+   505→   505→                        value={name}
+   506→   506→                        onChange={(e) => setName(e.target.value)}
+   507→   507→                        className="pl-10 h-11 bg-slate-50 border-slate-200 focus:bg-white"
+   508→   508→                        disabled={isLoading}
+   509→   509→                        autoComplete="name"
+   510→   510→                      />
+   511→   511→                    </div>
+   512→   512→                  </div>
+   513→   513→                )}
+   514→   514→
+   515→   515→                <div className="space-y-1.5">
+   516→   516→                  <Label htmlFor="email" className="text-sm font-medium text-slate-700">
+   517→   517→                    Email
+   518→   518→                  </Label>
+   519→   519→                  <div className="relative">
+   520→   520→                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+   521→   521→                    <Input
+   522→   522→                      id="email"
+   523→   523→                      type="email"
+   524→   524→                      placeholder="contoh@email.com"
+   525→   525→                      value={email}
+   526→   526→                      onChange={(e) => setEmail(e.target.value)}
+   527→   527→                      className="pl-10 h-11 bg-slate-50 border-slate-200 focus:bg-white"
+   528→   528→                      disabled={isLoading}
+   529→   529→                      autoComplete="email"
+   530→   530→                    />
+   531→   531→                  </div>
+   532→   532→                </div>
+   533→   533→
+   534→   534→                <div className="space-y-1.5">
+   535→   535→                  <Label htmlFor="password" className="text-sm font-medium text-slate-700">
+   536→   536→                    Password
+   537→   537→                  </Label>
+   538→   538→                  <div className="relative">
+   539→   539→                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+   540→   540→                    <Input
+   541→   541→                      id="password"
+   542→   542→                      type={showPassword ? "text" : "password"}
+   543→   543→                      placeholder={isLogin ? "Masukkan password" : "Minimal 6 karakter"}
+   544→   544→                      value={password}
+   545→   545→                      onChange={(e) => setPassword(e.target.value)}
+   546→   546→                      className="pl-10 pr-10 h-11 bg-slate-50 border-slate-200 focus:bg-white"
+   547→   547→                      disabled={isLoading}
+   548→   548→                      autoComplete={isLogin ? "current-password" : "new-password"}
+   549→   549→                    />
+   550→   550→                    <button
+   551→   551→                      type="button"
+   552→   552→                      onClick={() => setShowPassword(!showPassword)}
+   553→   553→                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+   554→   554→                    >
+   555→   555→                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+   556→   556→                    </button>
+   557→   557→                  </div>
+   558→   558→                </div>
+   559→   559→
+   560→   560→                <Button
+   561→   561→                  type="submit"
+   562→   562→                  className="w-full h-11 bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-700 hover:to-violet-600 text-white font-semibold shadow-lg shadow-violet-500/25 transition-all"
+   563→   563→                  disabled={isLoading}
+   564→   564→                >
+   565→   565→                  {isLoading ? (
+   566→   566→                    <Loader2 className="w-4 h-4 animate-spin" />
+   567→   567→                  ) : isLogin ? (
+   568→   568→                    "Login"
+   569→   569→                  ) : (
+   570→   570→                    "Daftar"
+   571→   571→                  )}
+   572→   572→                </Button>
+   573→   573→              </form>
+   574→   574→            </CardContent>
+   575→   575→          </Card>
+   576→   576→
+   577→   577→          <p className="text-center text-sm text-slate-500 mt-6">
+   578→   578→            {isLogin ? "Belum punya akun?" : "Sudah punya akun?"}{" "}
+   579→   579→            <button
+   580→   580→              onClick={() => switchView(isLogin ? "register" : "login")}
+   581→   581→              className="font-semibold text-violet-600 hover:text-violet-700 transition-colors"
+   582→   582→            >
+   583→   583→              {isLogin ? "Daftar sekarang" : "Login di sini"}
+   584→   584→            </button>
+   585→   585→          </p>
+   586→   586→        </motion.div>
+   587→   587→      </main>
+   588→   588→
+   589→   589→      {/* Footer */}
+   590→   590→      <footer className="border-t bg-white mt-auto">
+   591→   591→        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4">
+   592→   592→          <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
+   593→   593→            <div className="w-4 h-4 rounded bg-gradient-to-br from-violet-600 to-teal-500 flex items-center justify-center">
+   594→   594→              <Link2 className="w-2 h-2 text-white" />
+   595→   595→            </div>
+   596→   596→            <span>&copy; {new Date().getFullYear()} Pendek.in &mdash; Pemendek URL Cepat & Gratis</span>
+   597→   597→          </div>
+   598→   598→        </div>
+   599→   599→      </footer>
+   600→   600→    </div>
+   601→   601→  );
+   602→   602→}
+   603→   603→
+   604→   604→// ─── Dashboard Component (URL Shortener) ────────────────────────
+   605→   605→function Dashboard({ onLogout }: { onLogout: () => void }) {
+   606→   606→  const { data: session } = useSession();
+   607→   607→  const [url, setUrl] = useState("");
+   608→   608→  const [title, setTitle] = useState("");
+   609→   609→  const [isShortening, setIsShortening] = useState(false);
+   610→   610→  const [result, setResult] = useState<ShortLink | null>(null);
+   611→   611→  const [links, setLinks] = useState<ShortLink[]>([]);
+   612→   612→  const [isLoadingLinks, setIsLoadingLinks] = useState(true);
+   613→   613→  const [copiedId, setCopiedId] = useState<string | null>(null);
+   614→   614→  const [deleteTarget, setDeleteTarget] = useState<ShortLink | null>(null);
+   615→   615→  const [isDeleting, setIsDeleting] = useState(false);
+   616→   616→  const [showAll, setShowAll] = useState(false);
+   617→   617→  const { toast } = useToast();
+   618→   618→
+   619→   619→  const fetchLinks = useCallback(async () => {
+   620→   620→    try {
+   621→   621→      const res = await fetch("/api/links");
+   622→   622→      if (res.ok) {
+   623→   623→        const data = await res.json();
+   624→   624→        setLinks(data);
+   625→   625→      }
+   626→   626→    } catch {
+   627→   627→      // Silently fail
+   628→   628→    } finally {
+   629→   629→      setIsLoadingLinks(false);
+   630→   630→    }
+   631→   631→  }, []);
+   632→   632→
+   633→   633→  useEffect(() => {
+   634→   634→    if (session) fetchLinks();
+   635→   635→  }, [session, fetchLinks]);
+   636→   636→
+   637→   637→  const handleShorten = async () => {
+   638→   638→    if (!url.trim()) {
+   639→   639→      toast({
+   640→   640→        title: "URL diperlukan",
+   641→   641→        description: "Masukkan URL yang ingin dipendekkan.",
+   642→   642→        variant: "destructive",
+   643→   643→      });
+   644→   644→      return;
+   645→   645→    }
+   646→   646→
+   647→   647→    setIsShortening(true);
+   648→   648→    setResult(null);
+   649→   649→
+   650→   650→    try {
+   651→   651→      const res = await fetch("/api/shorten", {
+   652→   652→        method: "POST",
+   653→   653→        headers: { "Content-Type": "application/json" },
+   654→   654→        body: JSON.stringify({ url: url.trim(), title: title.trim() || undefined }),
+   655→   655→      });
+   656→   656→
+   657→   657→      const data = await res.json();
+   658→   658→
+   659→   659→      if (!res.ok) {
+   660→   660→        toast({
+   661→   661→          title: "Gagal memendekkan",
+   662→   662→          description: data.error || "Terjadi kesalahan.",
+   663→   663→          variant: "destructive",
+   664→   664→        });
+   665→   665→        return;
+   666→   666→      }
+   667→   667→
+   668→   668→      setResult(data);
+   669→   669→      setUrl("");
+   670→   670→      setTitle("");
+   671→   671→      fetchLinks();
+   672→   672→
+   673→   673→      toast({
+   674→   674→        title: "Berhasil!",
+   675→   675→        description: "URL berhasil dipendekkan.",
+   676→   676→      });
+   677→   677→    } catch {
+   678→   678→      toast({
+   679→   679→        title: "Error",
+   680→   680→        description: "Gagal terhubung ke server.",
+   681→   681→        variant: "destructive",
+   682→   682→      });
+   683→   683→    } finally {
+   684→   684→      setIsShortening(false);
+   685→   685→    }
+   686→   686→  };
+   687→   687→
+   688→   688→  const handleCopy = async (shortUrl: string, id: string) => {
+   689→   689→    try {
+   690→   690→      await navigator.clipboard.writeText(shortUrl);
+   691→   691→      setCopiedId(id);
+   692→   692→      toast({
+   693→   693→        title: "Disalin!",
+   694→   694→        description: "URL pendek berhasil disalin ke clipboard.",
+   695→   695→      });
+   696→   696→      setTimeout(() => setCopiedId(null), 2000);
+   697→   697→    } catch {
+   698→   698→      toast({
+   699→   699→        title: "Gagal menyalin",
+   700→   700→        description: "Browser tidak mendukung clipboard.",
+   701→   701→        variant: "destructive",
+   702→   702→      });
+   703→   703→    }
+   704→   704→  };
+   705→   705→
+   706→   706→  const handleDelete = async () => {
+   707→   707→    if (!deleteTarget) return;
+   708→   708→    setIsDeleting(true);
+   709→   709→    try {
+   710→   710→      const res = await fetch(`/api/links?id=${deleteTarget.id}`, {
+   711→   711→        method: "DELETE",
+   712→   712→      });
+   713→   713→      if (res.ok) {
+   714→   714→        setLinks((prev) => prev.filter((l) => l.id !== deleteTarget.id));
+   715→   715→        toast({
+   716→   716→          title: "Dihapus",
+   717→   717→          description: "Link berhasil dihapus.",
+   718→   718→        });
+   719→   719→      } else {
+   720→   720→        const data = await res.json();
+   721→   721→        toast({
+   722→   722→          title: "Gagal menghapus",
+   723→   723→          description: data.error,
+   724→   724→          variant: "destructive",
+   725→   725→        });
+   726→   726→      }
+   727→   727→    } catch {
+   728→   728→      toast({
+   729→   729→        title: "Gagal menghapus",
+   730→   730→        variant: "destructive",
+   731→   731→      });
+   732→   732→    } finally {
+   733→   733→      setIsDeleting(false);
+   734→   734→      setDeleteTarget(null);
+   735→   735→    }
+   736→   736→  };
+   737→   737→
+   738→   738→  const handleKeyDown = (e: React.KeyboardEvent) => {
+   739→   739→    if (e.key === "Enter") handleShorten();
+   740→   740→  };
+   741→   741→
+   742→   742→  const formatDate = (dateStr: string) => {
+   743→   743→    const date = new Date(dateStr);
+   744→   744→    return new Intl.DateTimeFormat("id-ID", {
+   745→   745→      day: "numeric",
+   746→   746→      month: "short",
+   747→   747→      year: "numeric",
+   748→   748→      hour: "2-digit",
+   749→   749→      minute: "2-digit",
+   750→   750→    }).format(date);
+   751→   751→  };
+   752→   752→
+   753→   753→  const totalClicks = links.reduce((sum, l) => sum + l.clicks, 0);
+   754→   754→  const displayedLinks = showAll ? links : links.slice(0, 5);
+   755→   755→
+   756→   756→  const userInitial = session?.user?.name?.[0]?.toUpperCase() || session?.user?.email?.[0]?.toUpperCase() || "U";
+   757→   757→
+   758→   758→  return (
+   759→   759→    <div className="min-h-screen flex flex-col bg-gradient-to-b from-slate-50 to-white">
+   760→   760→      {/* Header */}
+   761→   761→      <header className="border-b bg-white/80 backdrop-blur-md sticky top-0 z-50">
+   762→   762→        <div className="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+   763→   763→          <div className="flex items-center gap-2">
+   764→   764→            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-teal-500 flex items-center justify-center">
+   765→   765→              <Link2 className="w-4 h-4 text-white" />
+   766→   766→            </div>
+   767→   767→            <span className="font-bold text-lg tracking-tight">
+   768→   768→              Pendek<span className="text-violet-600">.in</span>
+   769→   769→            </span>
+   770→   770→          </div>
+   771→   771→          <div className="flex items-center gap-3">
+   772→   772→            <div className="flex items-center gap-2 text-sm text-slate-600">
+   773→   773→              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-teal-400 flex items-center justify-center text-white text-xs font-bold">
+   774→   774→                {userInitial}
+   775→   775→              </div>
+   776→   776→              <span className="hidden sm:inline max-w-32 truncate text-slate-700 font-medium">
+   777→   777→                {session?.user?.name || session?.user?.email}
+   778→   778→              </span>
+   779→   779→            </div>
+   780→   780→            <Button
+   781→   781→              variant="ghost"
+   782→   782→              size="sm"
+   783→   783→              className="text-slate-400 hover:text-red-500 h-8"
+   784→   784→              onClick={() => signOut({ callbackUrl: "/" })}
+   785→   785→            >
+   786→   786→              <LogOut className="w-4 h-4" />
+   787→   787→              <span className="hidden sm:inline ml-1.5">Keluar</span>
+   788→   788→            </Button>
+   789→   789→          </div>
+   790→   790→        </div>
+   791→   791→      </header>
+   792→   792→
+   793→   793→      <main className="flex-1">
+   794→   794→        {/* Hero Section */}
+   795→   795→        <section className="relative overflow-hidden">
+   796→   796→          <div className="absolute inset-0 bg-gradient-to-br from-violet-100/60 via-teal-50/40 to-transparent" />
+   797→   797→          <div className="relative max-w-4xl mx-auto px-4 sm:px-6 pt-8 pb-8 sm:pt-12 sm:pb-10">
+   798→   798→            <motion.div
+   799→   799→              initial={{ opacity: 0, y: 20 }}
+   800→   800→              animate={{ opacity: 1, y: 0 }}
+   801→   801→              transition={{ duration: 0.5 }}
+   802→   802→              className="text-center"
+   803→   803→            >
+   804→   804→              <Badge variant="secondary" className="mb-4 px-3 py-1 text-xs font-medium border-violet-200 bg-violet-50 text-violet-700">
+   805→   805→                <Sparkles className="w-3 h-3 mr-1" />
+   806→   806→                Cepat, Gratis, dan Mudah
+   807→   807→              </Badge>
+   808→   808→              <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 mb-3">
+   809→   809→                Pemendek URL{" "}
+   810→   810→                <span className="bg-gradient-to-r from-violet-600 to-teal-500 bg-clip-text text-transparent">
+   811→   811→                  Terpercaya
+   812→   812→                </span>
+   813→   813→              </h1>
+   814→   814→              <p className="text-slate-500 text-sm sm:text-base max-w-lg mx-auto mb-6">
+   815→   815→                Halo, <span className="font-semibold text-slate-700">{session?.user?.name || "User"}</span>! Ubah URL panjang jadi pendek dalam sekejap.
+   816→   816→              </p>
+   817→   817→            </motion.div>
+   818→   818→
+   819→   819→            {/* URL Input Card */}
+   820→   820→            <motion.div
+   821→   821→              initial={{ opacity: 0, y: 20 }}
+   822→   822→              animate={{ opacity: 1, y: 0 }}
+   823→   823→              transition={{ duration: 0.5, delay: 0.2 }}
+   824→   824→            >
+   825→   825→              <Card className="shadow-xl shadow-slate-200/50 border-slate-200/80">
+   826→   826→                <CardContent className="p-4 sm:p-6">
+   827→   827→                  <div className="flex flex-col gap-3">
+   828→   828→                    <div className="flex flex-col sm:flex-row gap-2">
+   829→   829→                      <div className="relative flex-1">
+   830→   830→                        <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+   831→   831→                        <Input
+   832→   832→                          type="url"
+   833→   833→                          placeholder="Tempel URL panjang di sini... (cth: https://example.com/very/long/url)"
+   834→   834→                          value={url}
+   835→   835→                          onChange={(e) => setUrl(e.target.value)}
+   836→   836→                          onKeyDown={handleKeyDown}
+   837→   837→                          className="pl-10 h-12 text-sm bg-slate-50 border-slate-200 focus:bg-white transition-colors"
+   838→   838→                          disabled={isShortening}
+   839→   839→                        />
+   840→   840→                      </div>
+   841→   841→                      <Button
+   842→   842→                        onClick={handleShorten}
+   843→   843→                        disabled={isShortening || !url.trim()}
+   844→   844→                        className="h-12 px-6 bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-700 hover:to-violet-600 text-white font-semibold shadow-lg shadow-violet-500/25 transition-all"
+   845→   845→                      >
+   846→   846→                        {isShortening ? (
+   847→   847→                          <motion.div
+   848→   848→                            animate={{ rotate: 360 }}
+   849→   849→                            transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+   850→   850→                          >
+   851→   851→                            <Zap className="w-4 h-4" />
+   852→   852→                          </motion.div>
+   853→   853→                        ) : (
+   854→   854→                          <>
+   855→   855→                            Pendekkan
+   856→   856→                            <ArrowRight className="w-4 h-4 ml-1" />
+   857→   857→                          </>
+   858→   858→                        )}
+   859→   859→                      </Button>
+   860→   860→                    </div>
+   861→   861→                    <div className="relative">
+   862→   862→                      <Input
+   863→   863→                        type="text"
+   864→   864→                        placeholder="Label opsional (cth: Link promo akhir tahun)"
+   865→   865→                        value={title}
+   866→   866→                        onChange={(e) => setTitle(e.target.value)}
+   867→   867→                        onKeyDown={handleKeyDown}
+   868→   868→                        className="h-9 text-sm bg-slate-50/50 border-slate-200/60 focus:bg-white transition-colors"
+   869→   869→                        disabled={isShortening}
+   870→   870→                      />
+   871→   871→                    </div>
+   872→   872→                  </div>
+   873→   873→
+   874→   874→                  <AnimatePresence>
+   875→   875→                    {result && (
+   876→   876→                      <motion.div
+   877→   877→                        initial={{ opacity: 0, height: 0, y: -10 }}
+   878→   878→                        animate={{ opacity: 1, height: "auto", y: 0 }}
+   879→   879→                        exit={{ opacity: 0, height: 0, y: -10 }}
+   880→   880→                        transition={{ duration: 0.3 }}
+   881→   881→                        className="overflow-hidden"
+   882→   882→                      >
+   883→   883→                        <div className="mt-4 p-4 rounded-xl bg-gradient-to-r from-violet-50 to-teal-50 border border-violet-200/60">
+   884→   884→                          <p className="text-xs font-medium text-violet-600 mb-2">URL pendek kamu:</p>
+   885→   885→                          <div className="flex items-center gap-2">
+   886→   886→                            <code className="flex-1 text-sm sm:text-base font-semibold text-slate-800 bg-white px-3 py-2 rounded-lg border border-slate-200 truncate">
+   887→   887→                              {result.shortUrl}
+   888→   888→                            </code>
+   889→   889→                            <Button
+   890→   890→                              size="sm"
+   891→   891→                              variant="outline"
+   892→   892→                              className="shrink-0 border-violet-200 hover:bg-violet-50 hover:text-violet-700 h-9"
+   893→   893→                              onClick={() => handleCopy(result.shortUrl, result.id)}
+   894→   894→                            >
+   895→   895→                              {copiedId === result.id ? (
+   896→   896→                                <Check className="w-4 h-4 text-green-600" />
+   897→   897→                              ) : (
+   898→   898→                                <Copy className="w-4 h-4" />
+   899→   899→                              )}
+   900→   900→                            </Button>
+   901→   901→                          </div>
+   902→   902→                          <p className="text-xs text-slate-400 mt-2 truncate">
+   903→   903→                            Dari: {result.originalUrl}
+   904→   904→                          </p>
+   905→   905→                        </div>
+   906→   906→                      </motion.div>
+   907→   907→                    )}
+   908→   908→                  </AnimatePresence>
+   909→   909→                </CardContent>
+   910→   910→              </Card>
+   911→   911→            </motion.div>
+   912→   912→
+   913→   913→            {/* Features */}
+   914→   914→            <motion.div
+   915→   915→              initial={{ opacity: 0, y: 20 }}
+   916→   916→              animate={{ opacity: 1, y: 0 }}
+   917→   917→              transition={{ duration: 0.5, delay: 0.3 }}
+   918→   918→              className="grid grid-cols-3 gap-3 sm:gap-4 mt-6"
+   919→   919→            >
+   920→   920→              {[
+   921→   921→                { icon: Zap, label: "Instan", desc: "Dalam sekejap" },
+   922→   922→                { icon: Globe, label: "Gratis", desc: "Tanpa batas" },
+   923→   923→                { icon: MousePointerClick, label: "Tracking", desc: "Hitungan klik" },
+   924→   924→              ].map(({ icon: Icon, label, desc }) => (
+   925→   925→                <div key={label} className="text-center p-3 sm:p-4">
+   926→   926→                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-100 to-teal-100 flex items-center justify-center mx-auto mb-2">
+   927→   927→                    <Icon className="w-5 h-5 text-violet-600" />
+   928→   928→                  </div>
+   929→   929→                  <p className="text-sm font-semibold text-slate-800">{label}</p>
+   930→   930→                  <p className="text-xs text-slate-400">{desc}</p>
+   931→   931→                </div>
+   932→   932→              ))}
+   933→   933→            </motion.div>
+   934→   934→          </div>
+   935→   935→        </section>
+   936→   936→
+   937→   937→        {/* Links Table */}
+   938→   938→        <section className="max-w-4xl mx-auto px-4 sm:px-6 pb-12">
+   939→   939→          <motion.div
+   940→   940→            initial={{ opacity: 0, y: 20 }}
+   941→   941→            animate={{ opacity: 1, y: 0 }}
+   942→   942→            transition={{ duration: 0.5, delay: 0.4 }}
+   943→   943→          >
+   944→   944→            <div className="flex items-center justify-between mb-4">
+   945→   945→              <div>
+   946→   946→                <h2 className="text-lg font-bold text-slate-800">Link Kamu</h2>
+   947→   947→                <p className="text-xs text-slate-400">
+   948→   948→                  {links.length} link &middot; {totalClicks} total klik
+   949→   949→                </p>
+   950→   950→              </div>
+   951→   951→            </div>
+   952→   952→
+   953→   953→            {isLoadingLinks ? (
+   954→   954→              <Card>
+   955→   955→                <CardContent className="p-6">
+   956→   956→                  <div className="space-y-3">
+   957→   957→                    {[1, 2, 3].map((i) => (
+   958→   958→                      <div key={i} className="flex items-center gap-3 animate-pulse">
+   959→   959→                        <div className="h-4 w-4 rounded bg-slate-200" />
+   960→   960→                        <div className="flex-1 h-4 rounded bg-slate-200" />
+   961→   961→                        <div className="h-4 w-16 rounded bg-slate-200" />
+   962→   962→                        <div className="h-4 w-16 rounded bg-slate-200" />
+   963→   963→                      </div>
+   964→   964→                    ))}
+   965→   965→                  </div>
+   966→   966→                </CardContent>
+   967→   967→              </Card>
+   968→   968→            ) : links.length === 0 ? (
+   969→   969→              <Card className="border-dashed border-slate-300">
+   970→   970→                <CardContent className="p-8 text-center">
+   971→   971→                  <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3">
+   972→   972→                    <Link2 className="w-8 h-8 text-slate-300" />
+   973→   973→                  </div>
+   974→   974→                  <p className="text-slate-500 font-medium">Belum ada link</p>
+   975→   975→                  <p className="text-sm text-slate-400 mt-1">
+   976→   976→                    Mulai pendekkan URL pertamamu di atas!
+   977→   977→                  </p>
+   978→   978→                </CardContent>
+   979→   979→              </Card>
+   980→   980→            ) : (
+   981→   981→              <div className="space-y-2">
+   982→   982→                {displayedLinks.map((link, idx) => (
+   983→   983→                  <motion.div
+   984→   984→                    key={link.id}
+   985→   985→                    initial={{ opacity: 0, x: -10 }}
+   986→   986→                    animate={{ opacity: 1, x: 0 }}
+   987→   987→                    transition={{ delay: idx * 0.05 }}
+   988→   988→                  >
+   989→   989→                    <Card className="hover:shadow-md transition-shadow border-slate-200/80 group">
+   990→   990→                      <CardContent className="p-3 sm:p-4">
+   991→   991→                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+   992→   992→                          <div className="flex-1 min-w-0">
+   993→   993→                            <div className="flex items-center gap-2">
+   994→   994→                              <code className="text-sm font-semibold text-violet-600 truncate">
+   995→   995→                                alamatweb.my.id/{link.shortCode}
+   996→   996→                              </code>
+   997→   997→                              {link.title && (
+   998→   998→                                <Badge variant="secondary" className="shrink-0 text-[10px] px-1.5 py-0 bg-slate-100 text-slate-500 hidden sm:inline-flex">
+   999→   999→                                  {link.title}
+  1000→  1000→                                </Badge>
+  1001→  1001→                              )}
+  1002→  1002→                            </div>
+  1003→  1003→                            <p className="text-xs text-slate-400 truncate mt-0.5" title={link.originalUrl}>
+  1004→  1004→                              {link.originalUrl}
+  1005→  1005→                            </p>
+  1006→  1006→                          </div>
+  1007→  1007→                          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+  1008→  1008→                            <div className="flex items-center gap-1 text-xs text-slate-400">
+  1009→  1009→                              <MousePointerClick className="w-3 h-3" />
+  1010→  1010→                              <span>{link.clicks}</span>
+  1011→  1011→                            </div>
+  1012→  1012→                            <div className="flex items-center gap-1 text-xs text-slate-400">
+  1013→  1013→                              <Clock className="w-3 h-3" />
+  1014→  1014→                              <span className="hidden sm:inline">{formatDate(link.createdAt)}</span>
+  1015→  1015→                              <span className="sm:hidden">
+  1016→  1016→                                {new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short" }).format(
+  1017→  1017→                                  new Date(link.createdAt)
+  1018→  1018→                                )}
+  1019→  1019→                              </span>
+  1020→  1020→                            </div>
+  1021→  1021→                            <div className="flex items-center gap-1">
+  1022→  1022→                              <Button
+  1023→  1023→                                size="sm"
+  1024→  1024→                                variant="ghost"
+  1025→  1025→                                className="h-8 w-8 p-0 hover:bg-violet-50 hover:text-violet-600"
+  1026→  1026→                                onClick={() => handleCopy(link.shortUrl, link.id)}
+  1027→  1027→                                title="Salin URL pendek"
+  1028→  1028→                              >
+  1029→  1029→                                {copiedId === link.id ? (
+  1030→  1030→                                  <Check className="w-3.5 h-3.5 text-green-600" />
+  1031→  1031→                                ) : (
+  1032→  1032→                                  <Copy className="w-3.5 h-3.5" />
+  1033→  1033→                                )}
+  1034→  1034→                              </Button>
+  1035→  1035→                              <Button
+  1036→  1036→                                size="sm"
+  1037→  1037→                                variant="ghost"
+  1038→  1038→                                className="h-8 w-8 p-0 hover:bg-slate-100 text-slate-400"
+  1039→  1039→                                asChild
+  1040→  1040→                              >
+  1041→  1041→                                <a href={link.originalUrl} target="_blank" rel="noopener noreferrer" title="Buka URL asli">
+  1042→  1042→                                  <ExternalLink className="w-3.5 h-3.5" />
+  1043→  1043→                                </a>
+  1044→  1044→                              </Button>
+  1045→  1045→                              <Button
+  1046→  1046→                                size="sm"
+  1047→  1047→                                variant="ghost"
+  1048→  1048→                                className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-500 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity"
+  1049→  1049→                                onClick={() => setDeleteTarget(link)}
+  1050→  1050→                                title="Hapus link"
+  1051→  1051→                              >
+  1052→  1052→                                <Trash2 className="w-3.5 h-3.5" />
+  1053→  1053→                              </Button>
+  1054→  1054→                            </div>
+  1055→  1055→                          </div>
+  1056→  1056→                        </div>
+  1057→  1057→                      </CardContent>
+  1058→  1058→                    </Card>
+  1059→  1059→                  </motion.div>
+  1060→  1060→                ))}
+  1061→  1061→
+  1062→  1062→                {links.length > 5 && (
+  1063→  1063→                  <Button
+  1064→  1064→                    variant="ghost"
+  1065→  1065→                    className="w-full text-sm text-slate-400 hover:text-violet-600"
+  1066→  1066→                    onClick={() => setShowAll(!showAll)}
+  1067→  1067→                  >
+  1068→  1068→                    {showAll ? (
+  1069→  1069→                      <>Tampilkan Sedikit <ChevronDown className="w-4 h-4 ml-1 rotate-180" /></>
+  1070→  1070→                    ) : (
+  1071→  1071→                      <>Tampilkan Semua ({links.length}) <ChevronDown className="w-4 h-4 ml-1" /></>
+  1072→  1072→                    )}
+  1073→  1073→                  </Button>
+  1074→  1074→                )}
+  1075→  1075→              </div>
+  1076→  1076→            )}
+  1077→  1077→          </motion.div>
+  1078→  1078→        </section>
+  1079→  1079→      </main>
+  1080→  1080→
+  1081→  1081→      {/* Footer */}
+  1082→  1082→      <footer className="border-t bg-white mt-auto">
+  1083→  1083→        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6">
+  1084→  1084→          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400">
+  1085→  1085→            <div className="flex items-center gap-2">
+  1086→  1086→              <div className="w-5 h-5 rounded bg-gradient-to-br from-violet-600 to-teal-500 flex items-center justify-center">
+  1087→  1087→                <Link2 className="w-2.5 h-2.5 text-white" />
+  1088→  1088→              </div>
+  1089→  1089→              <span className="font-semibold text-slate-500">
+  1090→  1090→                Pendek<span className="text-violet-600">.in</span>
+  1091→  1091→              </span>
+  1092→  1092→            </div>
+  1093→  1093→            <p>&copy; {new Date().getFullYear()} Pendek.in &mdash; Pemendek URL Cepat & Gratis</p>
+  1094→  1094→          </div>
+  1095→  1095→        </div>
+  1096→  1096→      </footer>
+  1097→  1097→
+  1098→  1098→      {/* Delete Confirmation Dialog */}
+  1099→  1099→      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+  1100→  1100→        <AlertDialogContent>
+  1101→  1101→          <AlertDialogHeader>
+  1102→  1102→            <AlertDialogTitle>Hapus link ini?</AlertDialogTitle>
+  1103→  1103→            <AlertDialogDescription>
+  1104→  1104→              Link <code className="font-semibold text-violet-600">alamatweb.my.id/{deleteTarget?.shortCode}</code> akan dihapus secara permanen. Tindakan ini tidak bisa dibatalkan.
+  1105→  1105→            </AlertDialogDescription>
+  1106→  1106→          </AlertDialogHeader>
+  1107→  1107→          <AlertDialogFooter>
+  1108→  1108→            <AlertDialogCancel disabled={isDeleting}>Batal</AlertDialogCancel>
+  1109→  1109→            <AlertDialogAction
+  1110→  1110→              onClick={handleDelete}
+  1111→  1111→              disabled={isDeleting}
+  1112→  1112→              className="bg-destructive text-white hover:bg-destructive/90"
+  1113→  1113→            >
+  1114→  1114→              {isDeleting ? "Menghapus..." : "Hapus"}
+  1115→  1115→            </AlertDialogAction>
+  1116→  1116→          </AlertDialogFooter>
+  1117→  1117→        </AlertDialogContent>
+  1118→  1118→      </AlertDialog>
+  1119→  1119→    </div>
+  1120→  1120→  );
+  1121→  1121→}
+  1122→  1122→
+  1123→  1123→// ─── Main Page ──────────────────────────────────────────────────
+  1124→  1124→export default function Home() {
+  1125→  1125→  const { data: session, status } = useSession();
+  1126→  1126→  const [pageView, setPageView] = useState<PageView | null>(null);
+  1127→  1127→
+  1128→  1128→  // Derive the active view: if session exists, always show dashboard
+  1129→  1129→  const activeView = session ? "dashboard" : pageView ?? "landing";
+  1130→  1130→
+  1131→  1131→  if (status === "loading") {
+  1132→  1132→    return (
+  1133→  1133→      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-slate-50 to-white">
+  1134→  1134→        <motion.div
+  1135→  1135→          initial={{ opacity: 0 }}
+  1136→  1136→          animate={{ opacity: 1 }}
+  1137→  1137→          className="text-center"
+  1138→  1138→        >
+  1139→  1139→          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-600 to-teal-500 flex items-center justify-center mx-auto mb-4 animate-pulse">
+  1140→  1140→            <Link2 className="w-6 h-6 text-white" />
+  1141→  1141→          </div>
+  1142→  1142→          <p className="text-sm text-slate-400">Memuat...</p>
+  1143→  1143→        </motion.div>
+  1144→  1144→      </div>
+  1145→  1145→    );
+  1146→  1146→  }
+  1147→  1147→
+  1148→  1148→  return (
+  1149→  1149→    <AnimatePresence mode="wait">
+  1150→  1150→      {activeView === "landing" && (
+  1151→  1151→        <motion.div
+  1152→  1152→          key="landing"
+  1153→  1153→          initial={{ opacity: 0 }}
+  1154→  1154→          animate={{ opacity: 1 }}
+  1155→  1155→          exit={{ opacity: 0 }}
+  1156→  1156→          transition={{ duration: 0.25 }}
+  1157→  1157→        >
+  1158→  1158→          <LandingPage onAuth={(v) => setPageView("auth")} />
+  1159→  1159→        </motion.div>
+  1160→  1160→      )}
+  1161→  1161→      {activeView === "auth" && (
+  1162→  1162→        <motion.div
+  1163→  1163→          key="auth"
+  1164→  1164→          initial={{ opacity: 0 }}
+  1165→  1165→          animate={{ opacity: 1 }}
+  1166→  1166→          exit={{ opacity: 0 }}
+  1167→  1167→          transition={{ duration: 0.25 }}
+  1168→  1168→        >
+  1169→  1169→          <AuthForm onBack={() => setPageView("landing")} />
+  1170→  1170→        </motion.div>
+  1171→  1171→      )}
+  1172→  1172→      {activeView === "dashboard" && (
+  1173→  1173→        <motion.div
+  1174→  1174→          key="dashboard"
+  1175→  1175→          initial={{ opacity: 0 }}
+  1176→  1176→          animate={{ opacity: 1 }}
+  1177→  1177→          exit={{ opacity: 0 }}
+  1178→  1178→          transition={{ duration: 0.25 }}
+  1179→  1179→        >
+  1180→  1180→          <Dashboard
+  1181→  1181→            onLogout={() => setPageView("landing")}
+  1182→  1182→          />
+  1183→  1183→        </motion.div>
+  1184→  1184→      )}
+  1185→  1185→    </AnimatePresence>
+  1186→  1186→  );
+  1187→  1187→}
