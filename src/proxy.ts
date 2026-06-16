@@ -1,19 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
 
 // Short codes are nanoid: alphanumeric, no dashes/underscores, 6-8 chars
 const SHORT_CODE_REGEX = /^[A-Za-z0-9_-]{6,12}$/;
 
 const SKIP_PATHS = [
-  "/api",
-  "/_next",
-  "/favicon",
-  "/robots.txt",
-  "/logo.svg",
-  "/hero-illustration.png",
+  "api",
+  "_next",
+  "favicon",
+  "robots.txt",
+  "logo.svg",
+  "hero-illustration.png",
 ];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest): Promise<NextResponse | undefined> {
   const { pathname } = request.nextUrl;
 
   // Only handle root-level paths (no nested slashes)
@@ -30,6 +29,9 @@ export async function middleware(request: NextRequest) {
 
   // Skip if it looks like a file extension
   if (possibleCode.includes(".")) return;
+
+  // Dynamic import to avoid issues at module level
+  const { db } = await import("@/lib/db");
 
   try {
     const link = await db.shortUrl.findUnique({
@@ -50,7 +52,3 @@ export async function middleware(request: NextRequest) {
     // Let it fall through to Next.js
   }
 }
-
-export const config = {
-  matcher: ["/:code"],
-};
