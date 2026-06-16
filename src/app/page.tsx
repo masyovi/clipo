@@ -23,6 +23,10 @@ import {
   Loader2,
   Eye,
   EyeOff,
+  ArrowLeft,
+  Shield,
+  BarChart3,
+  LinkIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,9 +58,261 @@ interface ShortLink {
 }
 
 type AuthView = "login" | "register";
+type PageView = "landing" | "auth" | "dashboard";
+
+// ─── Fade-in wrapper ────────────────────────────────────────────
+const fadeUp = {
+  initial: { opacity: 0, y: 24 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -16 },
+};
+
+// ─── Landing Page ────────────────────────────────────────────────
+function LandingPage({ onAuth }: { onAuth: (v?: AuthView) => void }) {
+  return (
+    <div className="min-h-screen flex flex-col">
+      {/* Header */}
+      <header className="border-b bg-white/80 backdrop-blur-md sticky top-0 z-50">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-teal-500 flex items-center justify-center">
+              <Link2 className="w-4 h-4 text-white" />
+            </div>
+            <span className="font-bold text-lg tracking-tight">
+              Pendek<span className="text-violet-600">.in</span>
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-slate-600 hover:text-violet-600"
+              onClick={() => onAuth("login")}
+            >
+              Masuk
+            </Button>
+            <Button
+              size="sm"
+              className="bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-700 hover:to-violet-600 text-white shadow-md shadow-violet-500/20"
+              onClick={() => onAuth("register")}
+            >
+              Daftar Gratis
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <main className="flex-1">
+        {/* Hero */}
+        <section className="relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-violet-100/60 via-teal-50/40 to-transparent" />
+          <div className="relative max-w-5xl mx-auto px-4 sm:px-6 pt-12 sm:pt-20 pb-10 sm:pb-16">
+            <div className="grid lg:grid-cols-2 gap-8 sm:gap-12 items-center">
+              {/* Left: Copy */}
+              <motion.div {...fadeUp} transition={{ duration: 0.5 }} className="order-2 lg:order-1">
+                <Badge variant="secondary" className="mb-4 px-3 py-1 text-xs font-medium border-violet-200 bg-violet-50 text-violet-700">
+                  <Sparkles className="w-3 h-3 mr-1" />
+                  Cepat, Gratis, dan Mudah
+                </Badge>
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-slate-900 leading-tight mb-4">
+                  Pendekkan URL Kamu{" "}
+                  <span className="bg-gradient-to-r from-violet-600 to-teal-500 bg-clip-text text-transparent">
+                    Dalam Sekejap
+                  </span>
+                </h1>
+                <p className="text-slate-500 text-sm sm:text-base lg:text-lg max-w-lg mb-8 leading-relaxed">
+                  Ubah URL panjang yang sulit diingat jadi link pendek yang rapi. Dilengkapi tracking klik, tanpa batas, dan gratis selamanya.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button
+                    size="lg"
+                    className="h-12 px-8 bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-700 hover:to-violet-600 text-white font-semibold shadow-lg shadow-violet-500/25 transition-all text-base"
+                    onClick={() => onAuth("register")}
+                  >
+                    Mulai Sekarang — Gratis
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="h-12 px-6 border-slate-200 hover:bg-slate-50 text-slate-600"
+                    onClick={() => onAuth("login")}
+                  >
+                    Sudah punya akun? Masuk
+                  </Button>
+                </div>
+              </motion.div>
+
+              {/* Right: Illustration */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.92 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6, delay: 0.15 }}
+                className="order-1 lg:order-2"
+              >
+                <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-violet-500/10 border border-slate-200/50">
+                  <img
+                    src="/hero-illustration.png"
+                    alt="URL Shortener Illustration"
+                    className="w-full h-auto object-cover"
+                  />
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+
+        {/* How It Works */}
+        <section className="max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+          <motion.div {...fadeUp} transition={{ duration: 0.5, delay: 0.1 }} className="text-center mb-10">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-3">
+              Cara Kerja
+            </h2>
+            <p className="text-slate-500 text-sm sm:text-base max-w-md mx-auto">
+              Tiga langkah sederhana untuk memendekkan URL
+            </p>
+          </motion.div>
+
+          <div className="grid sm:grid-cols-3 gap-6 sm:gap-8">
+            {[
+              {
+                step: "1",
+                icon: LinkIcon,
+                title: "Tempel URL",
+                desc: "Masukkan URL panjang yang ingin kamu pendekkan ke kolom input.",
+                color: "from-violet-500 to-violet-400",
+                shadow: "shadow-violet-500/20",
+              },
+              {
+                step: "2",
+                icon: Zap,
+                title: "Klik Pendekkan",
+                desc: "Tekan tombol dan langsung dapat URL pendek yang siap pakai.",
+                color: "from-amber-500 to-orange-400",
+                shadow: "shadow-amber-500/20",
+              },
+              {
+                step: "3",
+                icon: BarChart3,
+                title: "Pantau & Bagikan",
+                desc: "Salin URL pendek, bagikan ke mana saja, dan pantau jumlah klik.",
+                color: "from-teal-500 to-emerald-400",
+                shadow: "shadow-teal-500/20",
+              },
+            ].map(({ step, icon: Icon, title, desc, color, shadow }, idx) => (
+              <motion.div
+                key={step}
+                {...fadeUp}
+                transition={{ duration: 0.45, delay: 0.15 + idx * 0.1 }}
+              >
+                <Card className="h-full border-slate-200/80 hover:shadow-lg transition-shadow">
+                  <CardContent className="p-6 sm:p-8">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center shadow-lg ${shadow}`}>
+                        <Icon className="w-5 h-5 text-white" />
+                      </div>
+                      <span className="text-xs font-bold text-slate-300">LANGKAH {step}</span>
+                    </div>
+                    <h3 className="text-base font-bold text-slate-800 mb-2">{title}</h3>
+                    <p className="text-sm text-slate-500 leading-relaxed">{desc}</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+
+        {/* Features */}
+        <section className="bg-gradient-to-b from-slate-50 to-white py-12 sm:py-16">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6">
+            <motion.div {...fadeUp} transition={{ duration: 0.5, delay: 0.1 }} className="text-center mb-10">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-3">
+                Kenapa Pendek.in?
+              </h2>
+              <p className="text-slate-500 text-sm sm:text-base max-w-md mx-auto">
+                Fitur lengkap untuk kebutuhan link pendek kamu
+              </p>
+            </motion.div>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+              {[
+                { icon: Zap, title: "Instan", desc: "Hasilnya langsung keluar dalam hitungan milidetik." },
+                { icon: Globe, title: "Gratis Selamanya", desc: "Tanpa biaya, tanpa limit, tanpa iklan." },
+                { icon: MousePointerClick, title: "Tracking Klik", desc: "Pantau berapa kali link pendek kamu dikunjungi." },
+                { icon: Shield, title: "Aman & Privat", desc: "Akun pribadi, link kamu hanya bisa dilihat olehmu." },
+                { icon: BarChart3, title: "Dashboard Bersih", desc: "Kelola semua link dari satu tempat yang rapi." },
+                { icon: LinkIcon, title: "URL Kustom", desc: "Tambahkan label agar link mudah dikenali." },
+              ].map(({ icon: Icon, title, desc }, idx) => (
+                <motion.div
+                  key={title}
+                  {...fadeUp}
+                  transition={{ duration: 0.4, delay: 0.1 + idx * 0.05 }}
+                >
+                  <div className="flex gap-3 p-4 rounded-xl hover:bg-white hover:shadow-md transition-all cursor-default">
+                    <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-100 to-teal-100 flex items-center justify-center shrink-0 mt-0.5">
+                      <Icon className="w-4 h-4 text-violet-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-slate-800 mb-0.5">{title}</h3>
+                      <p className="text-xs text-slate-500 leading-relaxed">{desc}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* CTA */}
+        <section className="max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+          <motion.div {...fadeUp} transition={{ duration: 0.5 }}>
+            <Card className="border-0 bg-gradient-to-r from-violet-600 to-teal-500 text-white overflow-hidden">
+              <CardContent className="p-8 sm:p-12 text-center relative">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent)]" />
+                <div className="relative">
+                  <h2 className="text-2xl sm:text-3xl font-extrabold mb-3">
+                    Siap Memendekkan URL?
+                  </h2>
+                  <p className="text-violet-100 text-sm sm:text-base max-w-md mx-auto mb-6">
+                    Daftar gratis sekarang dan mulai kelola link kamu dengan lebih profesional.
+                  </p>
+                  <Button
+                    size="lg"
+                    className="h-12 px-8 bg-white text-violet-700 hover:bg-violet-50 font-semibold shadow-xl transition-all text-base"
+                    onClick={() => onAuth("register")}
+                  >
+                    Buat Akun Gratis
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </section>
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t bg-white mt-auto">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400">
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded bg-gradient-to-br from-violet-600 to-teal-500 flex items-center justify-center">
+                <Link2 className="w-2.5 h-2.5 text-white" />
+              </div>
+              <span className="font-semibold text-slate-500">
+                Pendek<span className="text-violet-600">.in</span>
+              </span>
+            </div>
+            <p>&copy; {new Date().getFullYear()} Pendek.in &mdash; Pemendek URL Cepat & Gratis</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
 
 // ─── Auth Form Component ────────────────────────────────────────
-function AuthForm() {
+function AuthForm({ onBack }: { onBack: () => void }) {
   const [view, setView] = useState<AuthView>("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -122,10 +378,9 @@ function AuthForm() {
 
       toast({
         title: "Registrasi berhasil!",
-        description: "Silakan login dengan akun kamu.",
+        description: "Selamat datang di Pendek.in!",
       });
 
-      // Auto-login after register
       const loginRes = await signIn("credentials", {
         email: email.trim(),
         password,
@@ -133,8 +388,8 @@ function AuthForm() {
       });
 
       if (loginRes?.error) {
-        setError("Registrasi berhasil, tapi gagal auto-login. Silakan login manual.");
         setView("login");
+        setError("Registrasi berhasil. Silakan login manual.");
       }
     } catch {
       setError("Gagal terhubung ke server");
@@ -153,23 +408,24 @@ function AuthForm() {
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-slate-50 to-white">
       {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-slate-400 hover:text-slate-600 -ml-2"
+            onClick={onBack}
+          >
+            <ArrowLeft className="w-4 h-4 mr-1" />
+            Kembali
+          </Button>
+          <div className="w-px h-5 bg-slate-200" />
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-teal-500 flex items-center justify-center">
-              <Link2 className="w-4 h-4 text-white" />
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-600 to-teal-500 flex items-center justify-center">
+              <Link2 className="w-3.5 h-3.5 text-white" />
             </div>
-            <span className="font-bold text-lg tracking-tight">
+            <span className="font-bold text-sm tracking-tight">
               Pendek<span className="text-violet-600">.in</span>
             </span>
-          </div>
-          <div className="text-sm text-muted-foreground">
-            {isLogin ? "Belum punya akun?" : "Sudah punya akun?"}
-            <button
-              onClick={() => switchView(isLogin ? "register" : "login")}
-              className="ml-1 font-semibold text-violet-600 hover:text-violet-700 transition-colors"
-            >
-              {isLogin ? "Daftar" : "Login"}
-            </button>
           </div>
         </div>
       </header>
@@ -181,7 +437,6 @@ function AuthForm() {
           transition={{ duration: 0.4 }}
           className="w-full max-w-md"
         >
-          {/* Title */}
           <div className="text-center mb-8">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-600 to-teal-500 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-violet-500/20">
               <Link2 className="w-8 h-8 text-white" />
@@ -198,7 +453,6 @@ function AuthForm() {
 
           <Card className="shadow-xl shadow-slate-200/50 border-slate-200/80">
             <CardContent className="p-6 sm:p-8">
-              {/* Google Login */}
               <Button
                 variant="outline"
                 className="w-full h-11 text-sm font-medium border-slate-200 hover:bg-slate-50 mb-4"
@@ -214,7 +468,6 @@ function AuthForm() {
                 Lanjutkan dengan Google
               </Button>
 
-              {/* Divider */}
               <div className="relative my-5">
                 <Separator />
                 <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-slate-400">
@@ -222,7 +475,6 @@ function AuthForm() {
                 </span>
               </div>
 
-              {/* Error */}
               <AnimatePresence>
                 {error && (
                   <motion.div
@@ -238,7 +490,6 @@ function AuthForm() {
                 )}
               </AnimatePresence>
 
-              {/* Form */}
               <form onSubmit={isLogin ? handleLogin : handleRegister} className="space-y-4">
                 {!isLogin && (
                   <div className="space-y-1.5">
@@ -323,11 +574,14 @@ function AuthForm() {
             </CardContent>
           </Card>
 
-          <p className="text-center text-xs text-slate-400 mt-6">
-            Dengan melanjutkan, kamu menyetujui{" "}
-            <span className="text-violet-600 cursor-pointer hover:underline">Ketentuan Layanan</span>
-            {" "}dan{" "}
-            <span className="text-violet-600 cursor-pointer hover:underline">Kebijakan Privasi</span>
+          <p className="text-center text-sm text-slate-500 mt-6">
+            {isLogin ? "Belum punya akun?" : "Sudah punya akun?"}{" "}
+            <button
+              onClick={() => switchView(isLogin ? "register" : "login")}
+              className="font-semibold text-violet-600 hover:text-violet-700 transition-colors"
+            >
+              {isLogin ? "Daftar sekarang" : "Login di sini"}
+            </button>
           </p>
         </motion.div>
       </main>
@@ -348,7 +602,7 @@ function AuthForm() {
 }
 
 // ─── Dashboard Component (URL Shortener) ────────────────────────
-function Dashboard() {
+function Dashboard({ onLogout }: { onLogout: () => void }) {
   const { data: session } = useSession();
   const [url, setUrl] = useState("");
   const [title, setTitle] = useState("");
@@ -617,7 +871,6 @@ function Dashboard() {
                     </div>
                   </div>
 
-                  {/* Result */}
                   <AnimatePresence>
                     {result && (
                       <motion.div
@@ -870,6 +1123,10 @@ function Dashboard() {
 // ─── Main Page ──────────────────────────────────────────────────
 export default function Home() {
   const { data: session, status } = useSession();
+  const [pageView, setPageView] = useState<PageView | null>(null);
+
+  // Derive the active view: if session exists, always show dashboard
+  const activeView = session ? "dashboard" : pageView ?? "landing";
 
   if (status === "loading") {
     return (
@@ -888,9 +1145,43 @@ export default function Home() {
     );
   }
 
-  if (!session) {
-    return <AuthForm />;
-  }
-
-  return <Dashboard />;
+  return (
+    <AnimatePresence mode="wait">
+      {activeView === "landing" && (
+        <motion.div
+          key="landing"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.25 }}
+        >
+          <LandingPage onAuth={(v) => setPageView("auth")} />
+        </motion.div>
+      )}
+      {activeView === "auth" && (
+        <motion.div
+          key="auth"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.25 }}
+        >
+          <AuthForm onBack={() => setPageView("landing")} />
+        </motion.div>
+      )}
+      {activeView === "dashboard" && (
+        <motion.div
+          key="dashboard"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.25 }}
+        >
+          <Dashboard
+            onLogout={() => setPageView("landing")}
+          />
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 }

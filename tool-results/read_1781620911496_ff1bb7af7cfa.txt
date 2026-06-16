@@ -1,0 +1,896 @@
+     1→"use client";
+     2→
+     3→import { useState, useCallback, useEffect } from "react";
+     4→import { motion, AnimatePresence } from "framer-motion";
+     5→import { useSession, signIn, signOut } from "next-auth/react";
+     6→import {
+     7→  Link2,
+     8→  Copy,
+     9→  Check,
+    10→  Trash2,
+    11→  ExternalLink,
+    12→  MousePointerClick,
+    13→  Sparkles,
+    14→  Globe,
+    15→  Zap,
+    16→  ArrowRight,
+    17→  Clock,
+    18→  ChevronDown,
+    19→  Mail,
+    20→  Lock,
+    21→  User,
+    22→  LogOut,
+    23→  Loader2,
+    24→  Eye,
+    25→  EyeOff,
+    26→} from "lucide-react";
+    27→import { Button } from "@/components/ui/button";
+    28→import { Input } from "@/components/ui/input";
+    29→import { Card, CardContent } from "@/components/ui/card";
+    30→import { Badge } from "@/components/ui/badge";
+    31→import { Label } from "@/components/ui/label";
+    32→import { Separator } from "@/components/ui/separator";
+    33→import {
+    34→  AlertDialog,
+    35→  AlertDialogAction,
+    36→  AlertDialogCancel,
+    37→  AlertDialogContent,
+    38→  AlertDialogDescription,
+    39→  AlertDialogFooter,
+    40→  AlertDialogHeader,
+    41→  AlertDialogTitle,
+    42→} from "@/components/ui/alert-dialog";
+    43→import { useToast } from "@/hooks/use-toast";
+    44→
+    45→// ─── Types ───────────────────────────────────────────────────────
+    46→interface ShortLink {
+    47→  id: string;
+    48→  originalUrl: string;
+    49→  shortCode: string;
+    50→  shortUrl: string;
+    51→  title: string | null;
+    52→  clicks: number;
+    53→  createdAt: string;
+    54→}
+    55→
+    56→type AuthView = "login" | "register";
+    57→
+    58→// ─── Auth Form Component ────────────────────────────────────────
+    59→function AuthForm() {
+    60→  const [view, setView] = useState<AuthView>("login");
+    61→  const [name, setName] = useState("");
+    62→  const [email, setEmail] = useState("");
+    63→  const [password, setPassword] = useState("");
+    64→  const [showPassword, setShowPassword] = useState(false);
+    65→  const [isLoading, setIsLoading] = useState(false);
+    66→  const [error, setError] = useState("");
+    67→  const { toast } = useToast();
+    68→
+    69→  const switchView = (v: AuthView) => {
+    70→    setView(v);
+    71→    setError("");
+    72→  };
+    73→
+    74→  const handleLogin = async (e: React.FormEvent) => {
+    75→    e.preventDefault();
+    76→    if (!email.trim() || !password.trim()) {
+    77→      setError("Email dan password wajib diisi");
+    78→      return;
+    79→    }
+    80→    setIsLoading(true);
+    81→    setError("");
+    82→
+    83→    const res = await signIn("credentials", {
+    84→      email: email.trim(),
+    85→      password,
+    86→      redirect: false,
+    87→    });
+    88→
+    89→    if (res?.error) {
+    90→      setError("Email atau password salah");
+    91→    }
+    92→    setIsLoading(false);
+    93→  };
+    94→
+    95→  const handleRegister = async (e: React.FormEvent) => {
+    96→    e.preventDefault();
+    97→    if (!name.trim() || !email.trim() || !password.trim()) {
+    98→      setError("Semua field wajib diisi");
+    99→      return;
+   100→    }
+   101→    if (password.length < 6) {
+   102→      setError("Password minimal 6 karakter");
+   103→      return;
+   104→    }
+   105→
+   106→    setIsLoading(true);
+   107→    setError("");
+   108→
+   109→    try {
+   110→      const res = await fetch("/api/register", {
+   111→        method: "POST",
+   112→        headers: { "Content-Type": "application/json" },
+   113→        body: JSON.stringify({ name: name.trim(), email: email.trim(), password }),
+   114→      });
+   115→
+   116→      const data = await res.json();
+   117→
+   118→      if (!res.ok) {
+   119→        setError(data.error || "Gagal mendaftar");
+   120→        return;
+   121→      }
+   122→
+   123→      toast({
+   124→        title: "Registrasi berhasil!",
+   125→        description: "Silakan login dengan akun kamu.",
+   126→      });
+   127→
+   128→      // Auto-login after register
+   129→      const loginRes = await signIn("credentials", {
+   130→        email: email.trim(),
+   131→        password,
+   132→        redirect: false,
+   133→      });
+   134→
+   135→      if (loginRes?.error) {
+   136→        setError("Registrasi berhasil, tapi gagal auto-login. Silakan login manual.");
+   137→        setView("login");
+   138→      }
+   139→    } catch {
+   140→      setError("Gagal terhubung ke server");
+   141→    } finally {
+   142→      setIsLoading(false);
+   143→    }
+   144→  };
+   145→
+   146→  const handleGoogleLogin = () => {
+   147→    signIn("google", { callbackUrl: "/" });
+   148→  };
+   149→
+   150→  const isLogin = view === "login";
+   151→
+   152→  return (
+   153→    <div className="min-h-screen flex flex-col bg-gradient-to-b from-slate-50 to-white">
+   154→      {/* Header */}
+   155→      <header className="border-b bg-white/80 backdrop-blur-md sticky top-0 z-50">
+   156→        <div className="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+   157→          <div className="flex items-center gap-2">
+   158→            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-teal-500 flex items-center justify-center">
+   159→              <Link2 className="w-4 h-4 text-white" />
+   160→            </div>
+   161→            <span className="font-bold text-lg tracking-tight">
+   162→              Pendek<span className="text-violet-600">.in</span>
+   163→            </span>
+   164→          </div>
+   165→          <div className="text-sm text-muted-foreground">
+   166→            {isLogin ? "Belum punya akun?" : "Sudah punya akun?"}
+   167→            <button
+   168→              onClick={() => switchView(isLogin ? "register" : "login")}
+   169→              className="ml-1 font-semibold text-violet-600 hover:text-violet-700 transition-colors"
+   170→            >
+   171→              {isLogin ? "Daftar" : "Login"}
+   172→            </button>
+   173→          </div>
+   174→        </div>
+   175→      </header>
+   176→
+   177→      <main className="flex-1 flex items-center justify-center px-4 sm:px-6 py-12">
+   178→        <motion.div
+   179→          initial={{ opacity: 0, y: 20 }}
+   180→          animate={{ opacity: 1, y: 0 }}
+   181→          transition={{ duration: 0.4 }}
+   182→          className="w-full max-w-md"
+   183→        >
+   184→          {/* Title */}
+   185→          <div className="text-center mb-8">
+   186→            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-600 to-teal-500 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-violet-500/20">
+   187→              <Link2 className="w-8 h-8 text-white" />
+   188→            </div>
+   189→            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+   190→              {isLogin ? "Selamat Datang" : "Buat Akun Baru"}
+   191→            </h1>
+   192→            <p className="text-slate-500 text-sm mt-2">
+   193→              {isLogin
+   194→                ? "Login untuk mulai memendekkan URL"
+   195→                : "Daftar gratis dan mulai gunakan Pendek.in"}
+   196→            </p>
+   197→          </div>
+   198→
+   199→          <Card className="shadow-xl shadow-slate-200/50 border-slate-200/80">
+   200→            <CardContent className="p-6 sm:p-8">
+   201→              {/* Google Login */}
+   202→              <Button
+   203→                variant="outline"
+   204→                className="w-full h-11 text-sm font-medium border-slate-200 hover:bg-slate-50 mb-4"
+   205→                onClick={handleGoogleLogin}
+   206→                disabled={isLoading}
+   207→              >
+   208→                <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
+   209→                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
+   210→                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+   211→                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+   212→                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+   213→                </svg>
+   214→                Lanjutkan dengan Google
+   215→              </Button>
+   216→
+   217→              {/* Divider */}
+   218→              <div className="relative my-5">
+   219→                <Separator />
+   220→                <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-slate-400">
+   221→                  atau dengan email
+   222→                </span>
+   223→              </div>
+   224→
+   225→              {/* Error */}
+   226→              <AnimatePresence>
+   227→                {error && (
+   228→                  <motion.div
+   229→                    initial={{ opacity: 0, height: 0 }}
+   230→                    animate={{ opacity: 1, height: "auto" }}
+   231→                    exit={{ opacity: 0, height: 0 }}
+   232→                    className="overflow-hidden"
+   233→                  >
+   234→                    <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm">
+   235→                      {error}
+   236→                    </div>
+   237→                  </motion.div>
+   238→                )}
+   239→              </AnimatePresence>
+   240→
+   241→              {/* Form */}
+   242→              <form onSubmit={isLogin ? handleLogin : handleRegister} className="space-y-4">
+   243→                {!isLogin && (
+   244→                  <div className="space-y-1.5">
+   245→                    <Label htmlFor="name" className="text-sm font-medium text-slate-700">
+   246→                      Nama Lengkap
+   247→                    </Label>
+   248→                    <div className="relative">
+   249→                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+   250→                      <Input
+   251→                        id="name"
+   252→                        type="text"
+   253→                        placeholder="Masukkan nama kamu"
+   254→                        value={name}
+   255→                        onChange={(e) => setName(e.target.value)}
+   256→                        className="pl-10 h-11 bg-slate-50 border-slate-200 focus:bg-white"
+   257→                        disabled={isLoading}
+   258→                        autoComplete="name"
+   259→                      />
+   260→                    </div>
+   261→                  </div>
+   262→                )}
+   263→
+   264→                <div className="space-y-1.5">
+   265→                  <Label htmlFor="email" className="text-sm font-medium text-slate-700">
+   266→                    Email
+   267→                  </Label>
+   268→                  <div className="relative">
+   269→                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+   270→                    <Input
+   271→                      id="email"
+   272→                      type="email"
+   273→                      placeholder="contoh@email.com"
+   274→                      value={email}
+   275→                      onChange={(e) => setEmail(e.target.value)}
+   276→                      className="pl-10 h-11 bg-slate-50 border-slate-200 focus:bg-white"
+   277→                      disabled={isLoading}
+   278→                      autoComplete="email"
+   279→                    />
+   280→                  </div>
+   281→                </div>
+   282→
+   283→                <div className="space-y-1.5">
+   284→                  <Label htmlFor="password" className="text-sm font-medium text-slate-700">
+   285→                    Password
+   286→                  </Label>
+   287→                  <div className="relative">
+   288→                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+   289→                    <Input
+   290→                      id="password"
+   291→                      type={showPassword ? "text" : "password"}
+   292→                      placeholder={isLogin ? "Masukkan password" : "Minimal 6 karakter"}
+   293→                      value={password}
+   294→                      onChange={(e) => setPassword(e.target.value)}
+   295→                      className="pl-10 pr-10 h-11 bg-slate-50 border-slate-200 focus:bg-white"
+   296→                      disabled={isLoading}
+   297→                      autoComplete={isLogin ? "current-password" : "new-password"}
+   298→                    />
+   299→                    <button
+   300→                      type="button"
+   301→                      onClick={() => setShowPassword(!showPassword)}
+   302→                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+   303→                    >
+   304→                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+   305→                    </button>
+   306→                  </div>
+   307→                </div>
+   308→
+   309→                <Button
+   310→                  type="submit"
+   311→                  className="w-full h-11 bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-700 hover:to-violet-600 text-white font-semibold shadow-lg shadow-violet-500/25 transition-all"
+   312→                  disabled={isLoading}
+   313→                >
+   314→                  {isLoading ? (
+   315→                    <Loader2 className="w-4 h-4 animate-spin" />
+   316→                  ) : isLogin ? (
+   317→                    "Login"
+   318→                  ) : (
+   319→                    "Daftar"
+   320→                  )}
+   321→                </Button>
+   322→              </form>
+   323→            </CardContent>
+   324→          </Card>
+   325→
+   326→          <p className="text-center text-xs text-slate-400 mt-6">
+   327→            Dengan melanjutkan, kamu menyetujui{" "}
+   328→            <span className="text-violet-600 cursor-pointer hover:underline">Ketentuan Layanan</span>
+   329→            {" "}dan{" "}
+   330→            <span className="text-violet-600 cursor-pointer hover:underline">Kebijakan Privasi</span>
+   331→          </p>
+   332→        </motion.div>
+   333→      </main>
+   334→
+   335→      {/* Footer */}
+   336→      <footer className="border-t bg-white mt-auto">
+   337→        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4">
+   338→          <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
+   339→            <div className="w-4 h-4 rounded bg-gradient-to-br from-violet-600 to-teal-500 flex items-center justify-center">
+   340→              <Link2 className="w-2 h-2 text-white" />
+   341→            </div>
+   342→            <span>&copy; {new Date().getFullYear()} Pendek.in &mdash; Pemendek URL Cepat & Gratis</span>
+   343→          </div>
+   344→        </div>
+   345→      </footer>
+   346→    </div>
+   347→  );
+   348→}
+   349→
+   350→// ─── Dashboard Component (URL Shortener) ────────────────────────
+   351→function Dashboard() {
+   352→  const { data: session } = useSession();
+   353→  const [url, setUrl] = useState("");
+   354→  const [title, setTitle] = useState("");
+   355→  const [isShortening, setIsShortening] = useState(false);
+   356→  const [result, setResult] = useState<ShortLink | null>(null);
+   357→  const [links, setLinks] = useState<ShortLink[]>([]);
+   358→  const [isLoadingLinks, setIsLoadingLinks] = useState(true);
+   359→  const [copiedId, setCopiedId] = useState<string | null>(null);
+   360→  const [deleteTarget, setDeleteTarget] = useState<ShortLink | null>(null);
+   361→  const [isDeleting, setIsDeleting] = useState(false);
+   362→  const [showAll, setShowAll] = useState(false);
+   363→  const { toast } = useToast();
+   364→
+   365→  const fetchLinks = useCallback(async () => {
+   366→    try {
+   367→      const res = await fetch("/api/links");
+   368→      if (res.ok) {
+   369→        const data = await res.json();
+   370→        setLinks(data);
+   371→      }
+   372→    } catch {
+   373→      // Silently fail
+   374→    } finally {
+   375→      setIsLoadingLinks(false);
+   376→    }
+   377→  }, []);
+   378→
+   379→  useEffect(() => {
+   380→    if (session) fetchLinks();
+   381→  }, [session, fetchLinks]);
+   382→
+   383→  const handleShorten = async () => {
+   384→    if (!url.trim()) {
+   385→      toast({
+   386→        title: "URL diperlukan",
+   387→        description: "Masukkan URL yang ingin dipendekkan.",
+   388→        variant: "destructive",
+   389→      });
+   390→      return;
+   391→    }
+   392→
+   393→    setIsShortening(true);
+   394→    setResult(null);
+   395→
+   396→    try {
+   397→      const res = await fetch("/api/shorten", {
+   398→        method: "POST",
+   399→        headers: { "Content-Type": "application/json" },
+   400→        body: JSON.stringify({ url: url.trim(), title: title.trim() || undefined }),
+   401→      });
+   402→
+   403→      const data = await res.json();
+   404→
+   405→      if (!res.ok) {
+   406→        toast({
+   407→          title: "Gagal memendekkan",
+   408→          description: data.error || "Terjadi kesalahan.",
+   409→          variant: "destructive",
+   410→        });
+   411→        return;
+   412→      }
+   413→
+   414→      setResult(data);
+   415→      setUrl("");
+   416→      setTitle("");
+   417→      fetchLinks();
+   418→
+   419→      toast({
+   420→        title: "Berhasil!",
+   421→        description: "URL berhasil dipendekkan.",
+   422→      });
+   423→    } catch {
+   424→      toast({
+   425→        title: "Error",
+   426→        description: "Gagal terhubung ke server.",
+   427→        variant: "destructive",
+   428→      });
+   429→    } finally {
+   430→      setIsShortening(false);
+   431→    }
+   432→  };
+   433→
+   434→  const handleCopy = async (shortUrl: string, id: string) => {
+   435→    try {
+   436→      await navigator.clipboard.writeText(shortUrl);
+   437→      setCopiedId(id);
+   438→      toast({
+   439→        title: "Disalin!",
+   440→        description: "URL pendek berhasil disalin ke clipboard.",
+   441→      });
+   442→      setTimeout(() => setCopiedId(null), 2000);
+   443→    } catch {
+   444→      toast({
+   445→        title: "Gagal menyalin",
+   446→        description: "Browser tidak mendukung clipboard.",
+   447→        variant: "destructive",
+   448→      });
+   449→    }
+   450→  };
+   451→
+   452→  const handleDelete = async () => {
+   453→    if (!deleteTarget) return;
+   454→    setIsDeleting(true);
+   455→    try {
+   456→      const res = await fetch(`/api/links?id=${deleteTarget.id}`, {
+   457→        method: "DELETE",
+   458→      });
+   459→      if (res.ok) {
+   460→        setLinks((prev) => prev.filter((l) => l.id !== deleteTarget.id));
+   461→        toast({
+   462→          title: "Dihapus",
+   463→          description: "Link berhasil dihapus.",
+   464→        });
+   465→      } else {
+   466→        const data = await res.json();
+   467→        toast({
+   468→          title: "Gagal menghapus",
+   469→          description: data.error,
+   470→          variant: "destructive",
+   471→        });
+   472→      }
+   473→    } catch {
+   474→      toast({
+   475→        title: "Gagal menghapus",
+   476→        variant: "destructive",
+   477→      });
+   478→    } finally {
+   479→      setIsDeleting(false);
+   480→      setDeleteTarget(null);
+   481→    }
+   482→  };
+   483→
+   484→  const handleKeyDown = (e: React.KeyboardEvent) => {
+   485→    if (e.key === "Enter") handleShorten();
+   486→  };
+   487→
+   488→  const formatDate = (dateStr: string) => {
+   489→    const date = new Date(dateStr);
+   490→    return new Intl.DateTimeFormat("id-ID", {
+   491→      day: "numeric",
+   492→      month: "short",
+   493→      year: "numeric",
+   494→      hour: "2-digit",
+   495→      minute: "2-digit",
+   496→    }).format(date);
+   497→  };
+   498→
+   499→  const totalClicks = links.reduce((sum, l) => sum + l.clicks, 0);
+   500→  const displayedLinks = showAll ? links : links.slice(0, 5);
+   501→
+   502→  const userInitial = session?.user?.name?.[0]?.toUpperCase() || session?.user?.email?.[0]?.toUpperCase() || "U";
+   503→
+   504→  return (
+   505→    <div className="min-h-screen flex flex-col bg-gradient-to-b from-slate-50 to-white">
+   506→      {/* Header */}
+   507→      <header className="border-b bg-white/80 backdrop-blur-md sticky top-0 z-50">
+   508→        <div className="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+   509→          <div className="flex items-center gap-2">
+   510→            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-teal-500 flex items-center justify-center">
+   511→              <Link2 className="w-4 h-4 text-white" />
+   512→            </div>
+   513→            <span className="font-bold text-lg tracking-tight">
+   514→              Pendek<span className="text-violet-600">.in</span>
+   515→            </span>
+   516→          </div>
+   517→          <div className="flex items-center gap-3">
+   518→            <div className="flex items-center gap-2 text-sm text-slate-600">
+   519→              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-teal-400 flex items-center justify-center text-white text-xs font-bold">
+   520→                {userInitial}
+   521→              </div>
+   522→              <span className="hidden sm:inline max-w-32 truncate text-slate-700 font-medium">
+   523→                {session?.user?.name || session?.user?.email}
+   524→              </span>
+   525→            </div>
+   526→            <Button
+   527→              variant="ghost"
+   528→              size="sm"
+   529→              className="text-slate-400 hover:text-red-500 h-8"
+   530→              onClick={() => signOut({ callbackUrl: "/" })}
+   531→            >
+   532→              <LogOut className="w-4 h-4" />
+   533→              <span className="hidden sm:inline ml-1.5">Keluar</span>
+   534→            </Button>
+   535→          </div>
+   536→        </div>
+   537→      </header>
+   538→
+   539→      <main className="flex-1">
+   540→        {/* Hero Section */}
+   541→        <section className="relative overflow-hidden">
+   542→          <div className="absolute inset-0 bg-gradient-to-br from-violet-100/60 via-teal-50/40 to-transparent" />
+   543→          <div className="relative max-w-4xl mx-auto px-4 sm:px-6 pt-8 pb-8 sm:pt-12 sm:pb-10">
+   544→            <motion.div
+   545→              initial={{ opacity: 0, y: 20 }}
+   546→              animate={{ opacity: 1, y: 0 }}
+   547→              transition={{ duration: 0.5 }}
+   548→              className="text-center"
+   549→            >
+   550→              <Badge variant="secondary" className="mb-4 px-3 py-1 text-xs font-medium border-violet-200 bg-violet-50 text-violet-700">
+   551→                <Sparkles className="w-3 h-3 mr-1" />
+   552→                Cepat, Gratis, dan Mudah
+   553→              </Badge>
+   554→              <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 mb-3">
+   555→                Pemendek URL{" "}
+   556→                <span className="bg-gradient-to-r from-violet-600 to-teal-500 bg-clip-text text-transparent">
+   557→                  Terpercaya
+   558→                </span>
+   559→              </h1>
+   560→              <p className="text-slate-500 text-sm sm:text-base max-w-lg mx-auto mb-6">
+   561→                Halo, <span className="font-semibold text-slate-700">{session?.user?.name || "User"}</span>! Ubah URL panjang jadi pendek dalam sekejap.
+   562→              </p>
+   563→            </motion.div>
+   564→
+   565→            {/* URL Input Card */}
+   566→            <motion.div
+   567→              initial={{ opacity: 0, y: 20 }}
+   568→              animate={{ opacity: 1, y: 0 }}
+   569→              transition={{ duration: 0.5, delay: 0.2 }}
+   570→            >
+   571→              <Card className="shadow-xl shadow-slate-200/50 border-slate-200/80">
+   572→                <CardContent className="p-4 sm:p-6">
+   573→                  <div className="flex flex-col gap-3">
+   574→                    <div className="flex flex-col sm:flex-row gap-2">
+   575→                      <div className="relative flex-1">
+   576→                        <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+   577→                        <Input
+   578→                          type="url"
+   579→                          placeholder="Tempel URL panjang di sini... (cth: https://example.com/very/long/url)"
+   580→                          value={url}
+   581→                          onChange={(e) => setUrl(e.target.value)}
+   582→                          onKeyDown={handleKeyDown}
+   583→                          className="pl-10 h-12 text-sm bg-slate-50 border-slate-200 focus:bg-white transition-colors"
+   584→                          disabled={isShortening}
+   585→                        />
+   586→                      </div>
+   587→                      <Button
+   588→                        onClick={handleShorten}
+   589→                        disabled={isShortening || !url.trim()}
+   590→                        className="h-12 px-6 bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-700 hover:to-violet-600 text-white font-semibold shadow-lg shadow-violet-500/25 transition-all"
+   591→                      >
+   592→                        {isShortening ? (
+   593→                          <motion.div
+   594→                            animate={{ rotate: 360 }}
+   595→                            transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+   596→                          >
+   597→                            <Zap className="w-4 h-4" />
+   598→                          </motion.div>
+   599→                        ) : (
+   600→                          <>
+   601→                            Pendekkan
+   602→                            <ArrowRight className="w-4 h-4 ml-1" />
+   603→                          </>
+   604→                        )}
+   605→                      </Button>
+   606→                    </div>
+   607→                    <div className="relative">
+   608→                      <Input
+   609→                        type="text"
+   610→                        placeholder="Label opsional (cth: Link promo akhir tahun)"
+   611→                        value={title}
+   612→                        onChange={(e) => setTitle(e.target.value)}
+   613→                        onKeyDown={handleKeyDown}
+   614→                        className="h-9 text-sm bg-slate-50/50 border-slate-200/60 focus:bg-white transition-colors"
+   615→                        disabled={isShortening}
+   616→                      />
+   617→                    </div>
+   618→                  </div>
+   619→
+   620→                  {/* Result */}
+   621→                  <AnimatePresence>
+   622→                    {result && (
+   623→                      <motion.div
+   624→                        initial={{ opacity: 0, height: 0, y: -10 }}
+   625→                        animate={{ opacity: 1, height: "auto", y: 0 }}
+   626→                        exit={{ opacity: 0, height: 0, y: -10 }}
+   627→                        transition={{ duration: 0.3 }}
+   628→                        className="overflow-hidden"
+   629→                      >
+   630→                        <div className="mt-4 p-4 rounded-xl bg-gradient-to-r from-violet-50 to-teal-50 border border-violet-200/60">
+   631→                          <p className="text-xs font-medium text-violet-600 mb-2">URL pendek kamu:</p>
+   632→                          <div className="flex items-center gap-2">
+   633→                            <code className="flex-1 text-sm sm:text-base font-semibold text-slate-800 bg-white px-3 py-2 rounded-lg border border-slate-200 truncate">
+   634→                              {result.shortUrl}
+   635→                            </code>
+   636→                            <Button
+   637→                              size="sm"
+   638→                              variant="outline"
+   639→                              className="shrink-0 border-violet-200 hover:bg-violet-50 hover:text-violet-700 h-9"
+   640→                              onClick={() => handleCopy(result.shortUrl, result.id)}
+   641→                            >
+   642→                              {copiedId === result.id ? (
+   643→                                <Check className="w-4 h-4 text-green-600" />
+   644→                              ) : (
+   645→                                <Copy className="w-4 h-4" />
+   646→                              )}
+   647→                            </Button>
+   648→                          </div>
+   649→                          <p className="text-xs text-slate-400 mt-2 truncate">
+   650→                            Dari: {result.originalUrl}
+   651→                          </p>
+   652→                        </div>
+   653→                      </motion.div>
+   654→                    )}
+   655→                  </AnimatePresence>
+   656→                </CardContent>
+   657→              </Card>
+   658→            </motion.div>
+   659→
+   660→            {/* Features */}
+   661→            <motion.div
+   662→              initial={{ opacity: 0, y: 20 }}
+   663→              animate={{ opacity: 1, y: 0 }}
+   664→              transition={{ duration: 0.5, delay: 0.3 }}
+   665→              className="grid grid-cols-3 gap-3 sm:gap-4 mt-6"
+   666→            >
+   667→              {[
+   668→                { icon: Zap, label: "Instan", desc: "Dalam sekejap" },
+   669→                { icon: Globe, label: "Gratis", desc: "Tanpa batas" },
+   670→                { icon: MousePointerClick, label: "Tracking", desc: "Hitungan klik" },
+   671→              ].map(({ icon: Icon, label, desc }) => (
+   672→                <div key={label} className="text-center p-3 sm:p-4">
+   673→                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-100 to-teal-100 flex items-center justify-center mx-auto mb-2">
+   674→                    <Icon className="w-5 h-5 text-violet-600" />
+   675→                  </div>
+   676→                  <p className="text-sm font-semibold text-slate-800">{label}</p>
+   677→                  <p className="text-xs text-slate-400">{desc}</p>
+   678→                </div>
+   679→              ))}
+   680→            </motion.div>
+   681→          </div>
+   682→        </section>
+   683→
+   684→        {/* Links Table */}
+   685→        <section className="max-w-4xl mx-auto px-4 sm:px-6 pb-12">
+   686→          <motion.div
+   687→            initial={{ opacity: 0, y: 20 }}
+   688→            animate={{ opacity: 1, y: 0 }}
+   689→            transition={{ duration: 0.5, delay: 0.4 }}
+   690→          >
+   691→            <div className="flex items-center justify-between mb-4">
+   692→              <div>
+   693→                <h2 className="text-lg font-bold text-slate-800">Link Kamu</h2>
+   694→                <p className="text-xs text-slate-400">
+   695→                  {links.length} link &middot; {totalClicks} total klik
+   696→                </p>
+   697→              </div>
+   698→            </div>
+   699→
+   700→            {isLoadingLinks ? (
+   701→              <Card>
+   702→                <CardContent className="p-6">
+   703→                  <div className="space-y-3">
+   704→                    {[1, 2, 3].map((i) => (
+   705→                      <div key={i} className="flex items-center gap-3 animate-pulse">
+   706→                        <div className="h-4 w-4 rounded bg-slate-200" />
+   707→                        <div className="flex-1 h-4 rounded bg-slate-200" />
+   708→                        <div className="h-4 w-16 rounded bg-slate-200" />
+   709→                        <div className="h-4 w-16 rounded bg-slate-200" />
+   710→                      </div>
+   711→                    ))}
+   712→                  </div>
+   713→                </CardContent>
+   714→              </Card>
+   715→            ) : links.length === 0 ? (
+   716→              <Card className="border-dashed border-slate-300">
+   717→                <CardContent className="p-8 text-center">
+   718→                  <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3">
+   719→                    <Link2 className="w-8 h-8 text-slate-300" />
+   720→                  </div>
+   721→                  <p className="text-slate-500 font-medium">Belum ada link</p>
+   722→                  <p className="text-sm text-slate-400 mt-1">
+   723→                    Mulai pendekkan URL pertamamu di atas!
+   724→                  </p>
+   725→                </CardContent>
+   726→              </Card>
+   727→            ) : (
+   728→              <div className="space-y-2">
+   729→                {displayedLinks.map((link, idx) => (
+   730→                  <motion.div
+   731→                    key={link.id}
+   732→                    initial={{ opacity: 0, x: -10 }}
+   733→                    animate={{ opacity: 1, x: 0 }}
+   734→                    transition={{ delay: idx * 0.05 }}
+   735→                  >
+   736→                    <Card className="hover:shadow-md transition-shadow border-slate-200/80 group">
+   737→                      <CardContent className="p-3 sm:p-4">
+   738→                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+   739→                          <div className="flex-1 min-w-0">
+   740→                            <div className="flex items-center gap-2">
+   741→                              <code className="text-sm font-semibold text-violet-600 truncate">
+   742→                                alamatweb.my.id/{link.shortCode}
+   743→                              </code>
+   744→                              {link.title && (
+   745→                                <Badge variant="secondary" className="shrink-0 text-[10px] px-1.5 py-0 bg-slate-100 text-slate-500 hidden sm:inline-flex">
+   746→                                  {link.title}
+   747→                                </Badge>
+   748→                              )}
+   749→                            </div>
+   750→                            <p className="text-xs text-slate-400 truncate mt-0.5" title={link.originalUrl}>
+   751→                              {link.originalUrl}
+   752→                            </p>
+   753→                          </div>
+   754→                          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+   755→                            <div className="flex items-center gap-1 text-xs text-slate-400">
+   756→                              <MousePointerClick className="w-3 h-3" />
+   757→                              <span>{link.clicks}</span>
+   758→                            </div>
+   759→                            <div className="flex items-center gap-1 text-xs text-slate-400">
+   760→                              <Clock className="w-3 h-3" />
+   761→                              <span className="hidden sm:inline">{formatDate(link.createdAt)}</span>
+   762→                              <span className="sm:hidden">
+   763→                                {new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short" }).format(
+   764→                                  new Date(link.createdAt)
+   765→                                )}
+   766→                              </span>
+   767→                            </div>
+   768→                            <div className="flex items-center gap-1">
+   769→                              <Button
+   770→                                size="sm"
+   771→                                variant="ghost"
+   772→                                className="h-8 w-8 p-0 hover:bg-violet-50 hover:text-violet-600"
+   773→                                onClick={() => handleCopy(link.shortUrl, link.id)}
+   774→                                title="Salin URL pendek"
+   775→                              >
+   776→                                {copiedId === link.id ? (
+   777→                                  <Check className="w-3.5 h-3.5 text-green-600" />
+   778→                                ) : (
+   779→                                  <Copy className="w-3.5 h-3.5" />
+   780→                                )}
+   781→                              </Button>
+   782→                              <Button
+   783→                                size="sm"
+   784→                                variant="ghost"
+   785→                                className="h-8 w-8 p-0 hover:bg-slate-100 text-slate-400"
+   786→                                asChild
+   787→                              >
+   788→                                <a href={link.originalUrl} target="_blank" rel="noopener noreferrer" title="Buka URL asli">
+   789→                                  <ExternalLink className="w-3.5 h-3.5" />
+   790→                                </a>
+   791→                              </Button>
+   792→                              <Button
+   793→                                size="sm"
+   794→                                variant="ghost"
+   795→                                className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-500 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity"
+   796→                                onClick={() => setDeleteTarget(link)}
+   797→                                title="Hapus link"
+   798→                              >
+   799→                                <Trash2 className="w-3.5 h-3.5" />
+   800→                              </Button>
+   801→                            </div>
+   802→                          </div>
+   803→                        </div>
+   804→                      </CardContent>
+   805→                    </Card>
+   806→                  </motion.div>
+   807→                ))}
+   808→
+   809→                {links.length > 5 && (
+   810→                  <Button
+   811→                    variant="ghost"
+   812→                    className="w-full text-sm text-slate-400 hover:text-violet-600"
+   813→                    onClick={() => setShowAll(!showAll)}
+   814→                  >
+   815→                    {showAll ? (
+   816→                      <>Tampilkan Sedikit <ChevronDown className="w-4 h-4 ml-1 rotate-180" /></>
+   817→                    ) : (
+   818→                      <>Tampilkan Semua ({links.length}) <ChevronDown className="w-4 h-4 ml-1" /></>
+   819→                    )}
+   820→                  </Button>
+   821→                )}
+   822→              </div>
+   823→            )}
+   824→          </motion.div>
+   825→        </section>
+   826→      </main>
+   827→
+   828→      {/* Footer */}
+   829→      <footer className="border-t bg-white mt-auto">
+   830→        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6">
+   831→          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400">
+   832→            <div className="flex items-center gap-2">
+   833→              <div className="w-5 h-5 rounded bg-gradient-to-br from-violet-600 to-teal-500 flex items-center justify-center">
+   834→                <Link2 className="w-2.5 h-2.5 text-white" />
+   835→              </div>
+   836→              <span className="font-semibold text-slate-500">
+   837→                Pendek<span className="text-violet-600">.in</span>
+   838→              </span>
+   839→            </div>
+   840→            <p>&copy; {new Date().getFullYear()} Pendek.in &mdash; Pemendek URL Cepat & Gratis</p>
+   841→          </div>
+   842→        </div>
+   843→      </footer>
+   844→
+   845→      {/* Delete Confirmation Dialog */}
+   846→      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+   847→        <AlertDialogContent>
+   848→          <AlertDialogHeader>
+   849→            <AlertDialogTitle>Hapus link ini?</AlertDialogTitle>
+   850→            <AlertDialogDescription>
+   851→              Link <code className="font-semibold text-violet-600">alamatweb.my.id/{deleteTarget?.shortCode}</code> akan dihapus secara permanen. Tindakan ini tidak bisa dibatalkan.
+   852→            </AlertDialogDescription>
+   853→          </AlertDialogHeader>
+   854→          <AlertDialogFooter>
+   855→            <AlertDialogCancel disabled={isDeleting}>Batal</AlertDialogCancel>
+   856→            <AlertDialogAction
+   857→              onClick={handleDelete}
+   858→              disabled={isDeleting}
+   859→              className="bg-destructive text-white hover:bg-destructive/90"
+   860→            >
+   861→              {isDeleting ? "Menghapus..." : "Hapus"}
+   862→            </AlertDialogAction>
+   863→          </AlertDialogFooter>
+   864→        </AlertDialogContent>
+   865→      </AlertDialog>
+   866→    </div>
+   867→  );
+   868→}
+   869→
+   870→// ─── Main Page ──────────────────────────────────────────────────
+   871→export default function Home() {
+   872→  const { data: session, status } = useSession();
+   873→
+   874→  if (status === "loading") {
+   875→    return (
+   876→      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-slate-50 to-white">
+   877→        <motion.div
+   878→          initial={{ opacity: 0 }}
+   879→          animate={{ opacity: 1 }}
+   880→          className="text-center"
+   881→        >
+   882→          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-600 to-teal-500 flex items-center justify-center mx-auto mb-4 animate-pulse">
+   883→            <Link2 className="w-6 h-6 text-white" />
+   884→          </div>
+   885→          <p className="text-sm text-slate-400">Memuat...</p>
+   886→        </motion.div>
+   887→      </div>
+   888→    );
+   889→  }
+   890→
+   891→  if (!session) {
+   892→    return <AuthForm />;
+   893→  }
+   894→
+   895→  return <Dashboard />;
+   896→}
