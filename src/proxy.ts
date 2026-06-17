@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// Short codes are nanoid: alphanumeric, no dashes/underscores, 6-8 chars
+// App routes that should serve the main page
+const APP_ROUTES = ["/login", "/register", "/dashboard"];
+
+// Short codes are nanoid: alphanumeric, no dashes/underscores, 6-12 chars
 const SHORT_CODE_REGEX = /^[A-Za-z0-9_-]{6,12}$/;
 
 const SKIP_PATHS = [
@@ -15,6 +18,12 @@ const SKIP_PATHS = [
 export async function proxy(request: NextRequest): Promise<NextResponse | undefined> {
   const { pathname } = request.nextUrl;
 
+  // ── App route rewrites (serve main page.tsx) ──
+  if (APP_ROUTES.includes(pathname)) {
+    return NextResponse.rewrite(new URL("/", request.url));
+  }
+
+  // ── Short URL redirect ──
   // Only handle root-level paths (no nested slashes)
   const segments = pathname.split("/").filter(Boolean);
   if (segments.length !== 1) return;
@@ -23,6 +32,9 @@ export async function proxy(request: NextRequest): Promise<NextResponse | undefi
 
   // Skip known paths
   if (SKIP_PATHS.some((p) => possibleCode.startsWith(p))) return;
+
+  // Skip app-like words that aren't short codes
+  if (["login", "register", "dashboard"].includes(possibleCode)) return;
 
   // Check if it looks like a short code
   if (!SHORT_CODE_REGEX.test(possibleCode)) return;

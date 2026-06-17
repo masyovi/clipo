@@ -59,34 +59,36 @@ interface ShortLink {
 
 type AuthView = "login" | "register";
 type PageView = "landing" | "auth" | "dashboard";
-type HashRoute = "" | "login" | "register" | "dashboard";
+type AppRoute = "" | "login" | "register" | "dashboard";
 
-// ─── Hash Router Hook ──────────────────────────────────────────
-function getInitialHash(): HashRoute {
+// ─── Path Router Hook (clean URLs, no #) ──────────────────────
+function getInitialPath(): AppRoute {
   if (typeof window === "undefined") return "";
-  const raw = window.location.hash.replace("#", "");
-  const valid: HashRoute[] = ["", "login", "register", "dashboard"];
-  return valid.includes(raw as HashRoute) ? (raw as HashRoute) : "";
+  const raw = window.location.pathname.replace(/^\/+|\/+$/g, "");
+  const valid: AppRoute[] = ["", "login", "register", "dashboard"];
+  return valid.includes(raw as AppRoute) ? (raw as AppRoute) : "";
 }
 
-function useHashRouter() {
-  const [hash, setHash] = useState<HashRoute>(getInitialHash);
+function usePathRouter() {
+  const [path, setPath] = useState<AppRoute>(getInitialPath);
 
   useEffect(() => {
-    const readHash = () => {
-      const raw = window.location.hash.replace("#", "");
-      const valid: HashRoute[] = ["", "login", "register", "dashboard"];
-      setHash(valid.includes(raw as HashRoute) ? (raw as HashRoute) : "");
+    const readPath = () => {
+      const raw = window.location.pathname.replace(/^\/+|\/+$/g, "");
+      const valid: AppRoute[] = ["", "login", "register", "dashboard"];
+      setPath(valid.includes(raw as AppRoute) ? (raw as AppRoute) : "");
     };
-    window.addEventListener("hashchange", readHash);
-    return () => window.removeEventListener("hashchange", readHash);
+    window.addEventListener("popstate", readPath);
+    return () => window.removeEventListener("popstate", readPath);
   }, []);
 
-  const navigate = useCallback((route: HashRoute) => {
-    window.location.hash = route;
+  const navigate = useCallback((route: AppRoute) => {
+    const url = route ? `/${route}` : "/";
+    window.history.pushState({}, "", url);
+    setPath(route);
   }, []);
 
-  return { hash, navigate };
+  return { path, navigate };
 }
 
 // ─── Fade-in wrapper ────────────────────────────────────────────
@@ -351,23 +353,23 @@ function AuthForm({ onBack, initialView = "login" }: { onBack: () => void; initi
   const [error, setError] = useState("");
   const { toast } = useToast();
 
-  // Sync internal view with hash (for browser back/forward)
+  // Sync internal view with path (for browser back/forward)
   useEffect(() => {
-    const handleHashChange = () => {
-      const h = window.location.hash.replace("#", "");
-      if (h === "login" || h === "register") {
-        setView(h);
+    const handlePopState = () => {
+      const raw = window.location.pathname.replace(/^\/+|\/+$/g, "");
+      if (raw === "login" || raw === "register") {
+        setView(raw);
         setError("");
       }
     };
-    window.addEventListener("hashchange", handleHashChange);
-    return () => window.removeEventListener("hashchange", handleHashChange);
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
   const switchView = (v: AuthView) => {
     setView(v);
     setError("");
-    window.location.hash = v;
+    window.history.pushState({}, "", `/${v}`);
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -1166,14 +1168,14 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
 // ─── Main Page ──────────────────────────────────────────────────
 export default function Home() {
   const { data: session, status } = useSession();
-  const { hash, navigate } = useHashRouter();
+  const { path, navigate } = usePathRouter();
 
-  // Derive the active view from hash + session state
+  // Derive the active view from path + session state
   const activeView: PageView = useMemo(() => {
     if (session) return "dashboard";
-    if (hash === "login" || hash === "register") return "auth";
+    if (path === "login" || path === "register") return "auth";
     return "landing";
-  }, [session, hash]);
+  }, [session, path]);
 
   if (status === "loading") {
     return (
@@ -1213,7 +1215,7 @@ export default function Home() {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.25 }}
         >
-          <AuthForm onBack={() => navigate("")} initialView={hash === "register" ? "register" : "login"} />
+          <AuthForm onBack={() => navigate("")} initialView={path === "register" ? "register" : "login"} />
         </motion.div>
       )}
       {activeView === "dashboard" && (
