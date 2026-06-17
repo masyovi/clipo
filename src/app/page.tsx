@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession, signIn, signOut } from "next-auth/react";
 import {
@@ -59,6 +59,35 @@ interface ShortLink {
 
 type AuthView = "login" | "register";
 type PageView = "landing" | "auth" | "dashboard";
+type HashRoute = "" | "login" | "register" | "dashboard";
+
+// ─── Hash Router Hook ──────────────────────────────────────────
+function getInitialHash(): HashRoute {
+  if (typeof window === "undefined") return "";
+  const raw = window.location.hash.replace("#", "");
+  const valid: HashRoute[] = ["", "login", "register", "dashboard"];
+  return valid.includes(raw as HashRoute) ? (raw as HashRoute) : "";
+}
+
+function useHashRouter() {
+  const [hash, setHash] = useState<HashRoute>(getInitialHash);
+
+  useEffect(() => {
+    const readHash = () => {
+      const raw = window.location.hash.replace("#", "");
+      const valid: HashRoute[] = ["", "login", "register", "dashboard"];
+      setHash(valid.includes(raw as HashRoute) ? (raw as HashRoute) : "");
+    };
+    window.addEventListener("hashchange", readHash);
+    return () => window.removeEventListener("hashchange", readHash);
+  }, []);
+
+  const navigate = useCallback((route: HashRoute) => {
+    window.location.hash = route;
+  }, []);
+
+  return { hash, navigate };
+}
 
 // ─── Fade-in wrapper ────────────────────────────────────────────
 const fadeUp = {
@@ -68,7 +97,7 @@ const fadeUp = {
 };
 
 // ─── Landing Page ────────────────────────────────────────────────
-function LandingPage({ onAuth }: { onAuth: (v?: AuthView) => void }) {
+function LandingPage({ onAuth }: { onAuth: (v: AuthView) => void }) {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
@@ -312,8 +341,8 @@ function LandingPage({ onAuth }: { onAuth: (v?: AuthView) => void }) {
 }
 
 // ─── Auth Form Component ────────────────────────────────────────
-function AuthForm({ onBack }: { onBack: () => void }) {
-  const [view, setView] = useState<AuthView>("login");
+function AuthForm({ onBack, initialView = "login" }: { onBack: () => void; initialView?: AuthView }) {
+  const [view, setView] = useState<AuthView>(initialView);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -322,9 +351,23 @@ function AuthForm({ onBack }: { onBack: () => void }) {
   const [error, setError] = useState("");
   const { toast } = useToast();
 
+  // Sync internal view with hash (for browser back/forward)
+  useEffect(() => {
+    const handleHashChange = () => {
+      const h = window.location.hash.replace("#", "");
+      if (h === "login" || h === "register") {
+        setView(h);
+        setError("");
+      }
+    };
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, []);
+
   const switchView = (v: AuthView) => {
     setView(v);
     setError("");
+    window.location.hash = v;
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -1123,10 +1166,14 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
 // ─── Main Page ──────────────────────────────────────────────────
 export default function Home() {
   const { data: session, status } = useSession();
-  const [pageView, setPageView] = useState<PageView | null>(null);
+  const { hash, navigate } = useHashRouter();
 
-  // Derive the active view: if session exists, always show dashboard
-  const activeView = session ? "dashboard" : pageView ?? "landing";
+  // Derive the active view from hash + session state
+  const activeView: PageView = useMemo(() => {
+    if (session) return "dashboard";
+    if (hash === "login" || hash === "register") return "auth";
+    return "landing";
+  }, [session, hash]);
 
   if (status === "loading") {
     return (
@@ -1155,7 +1202,7 @@ export default function Home() {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.25 }}
         >
-          <LandingPage onAuth={(v) => setPageView("auth")} />
+          <LandingPage onAuth={(v) => navigate(v)} />
         </motion.div>
       )}
       {activeView === "auth" && (
@@ -1166,7 +1213,7 @@ export default function Home() {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.25 }}
         >
-          <AuthForm onBack={() => setPageView("landing")} />
+          <AuthForm onBack={() => navigate("")} initialView={hash === "register" ? "register" : "login"} />
         </motion.div>
       )}
       {activeView === "dashboard" && (
@@ -1178,7 +1225,7 @@ export default function Home() {
           transition={{ duration: 0.25 }}
         >
           <Dashboard
-            onLogout={() => setPageView("landing")}
+            onLogout={() => navigate("")}
           />
         </motion.div>
       )}
