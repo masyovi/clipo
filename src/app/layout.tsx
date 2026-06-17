@@ -15,22 +15,22 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Pendek.in - Pemendek URL Cepat & Gratis",
+  title: "SnipLink - Pemendek URL Cepat & Gratis",
   description: "Pemendek URL terpercaya. Ubah URL panjang jadi pendek dalam sekejap. Gratis, tanpa registrasi, dan tanpa batas.",
-  keywords: ["URL shortener", "pemendek URL", "short link", "bitly", "pendekin"],
-  authors: [{ name: "Pendek.in" }],
+  keywords: ["URL shortener", "pemendek URL", "short link", "bitly", "sniplink"],
+  authors: [{ name: "SnipLink" }],
   icons: {
     icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
   },
   openGraph: {
-    title: "Pendek.in - Pemendek URL Cepat & Gratis",
+    title: "SnipLink - Pemendek URL Cepat & Gratis",
     description: "Ubah URL panjang jadi pendek dalam sekejap.",
-    siteName: "Pendek.in",
+    siteName: "SnipLink",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Pendek.in - Pemendek URL",
+    title: "SnipLink - Pemendek URL",
     description: "Ubah URL panjang jadi pendek dalam sekejap.",
   },
 };

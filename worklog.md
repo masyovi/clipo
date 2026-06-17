@@ -71,3 +71,31 @@ Stage Summary:
 - Short URL redirect works via `src/proxy.ts` (Next.js 16 proxy convention)
 - Click tracking incremented correctly on each redirect
 - All routes: `#/`, `#/login`, `#/register`, `#/dashboard`, `/{shortcode}` working
+---
+Task ID: 2
+Agent: Main Agent
+Task: Rename app from "Pendek.in" to "SnipLink" and fix Google OAuth error handling
+
+Work Log:
+- Audited all files for "Pendek.in", "alamatweb.my.id", and domain-like branding
+- Updated src/app/layout.tsx: all 6 metadata references (title, keywords, authors, openGraph, twitter)
+- Updated src/app/page.tsx: all 16+ brand references including headers, footers, hero text, features, toast messages
+- Changed logo from `Pendek<span>.in</span>` to plain `SnipLink` (no domain-like styling)
+- Changed "Pendekkan" → "Perpendek" in 2 locations (hero heading, dashboard button, how-it-works)
+- Changed short URL display from hardcoded `alamatweb.my.id/{code}` to `{link.shortUrl}` (uses API response)
+- Changed delete dialog from hardcoded domain to `{deleteTarget?.shortUrl}`
+- Updated src/app/api/shorten/route.ts fallback domain: "snip.link"
+- Updated src/app/api/links/route.ts fallback domain: "snip.link"
+- Updated .env NEXTAUTH_SECRET prefix
+- Fixed Google OAuth: button now disabled while checking (googleReady !== true), shows spinner during check
+- Added guard in handleGoogleLogin to prevent click when not ready
+- Verified in browser: landing, login, register pages all show "SnipLink" branding
+- Verified Google button shows "Login Google belum tersedia" (disabled) with helpful message
+- ESLint passes clean
+
+Stage Summary:
+- App fully rebranded from "Pendek.in" to "SnipLink" across all files
+- No domain-like elements in app name
+- No hardcoded "alamatweb.my.id" in UI (uses API-provided shortUrl)
+- Google OAuth gracefully disabled with user-friendly messaging
+- All browser-verified: landing page, login page, register page
