@@ -9,9 +9,11 @@ const pidPath = path.join(__dirname, 'server.pid');
 // Clear log
 fs.writeFileSync(logPath, '');
 
+const nextBin = path.join(__dirname, 'node_modules', 'next', 'dist', 'bin', 'next');
+
 const child = spawn(
-  process.execPath, // use node to run npx
-  ['node_modules/.bin/next', 'dev', '-p', '3000'],
+  process.execPath,
+  [nextBin, 'dev', '-p', '3000'],
   {
     cwd: __dirname,
     detached: true,
