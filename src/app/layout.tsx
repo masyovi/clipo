@@ -15,22 +15,22 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SnipLink - Pemendek URL Cepat & Gratis",
+  title: "CLIPO - Pemendek URL Cepat & Gratis",
   description: "Pemendek URL terpercaya. Ubah URL panjang jadi pendek dalam sekejap. Gratis, tanpa registrasi, dan tanpa batas.",
-  keywords: ["URL shortener", "pemendek URL", "short link", "bitly", "sniplink"],
-  authors: [{ name: "SnipLink" }],
+  keywords: ["URL shortener", "pemendek URL", "short link", "bitly", "clipo"],
+  authors: [{ name: "CLIPO" }],
   icons: {
-    icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
+    icon: "/clipo-favicon.png",
   },
   openGraph: {
-    title: "SnipLink - Pemendek URL Cepat & Gratis",
+    title: "CLIPO - Pemendek URL Cepat & Gratis",
     description: "Ubah URL panjang jadi pendek dalam sekejap.",
-    siteName: "SnipLink",
+    siteName: "CLIPO",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "SnipLink - Pemendek URL",
+    title: "CLIPO - Pemendek URL",
     description: "Ubah URL panjang jadi pendek dalam sekejap.",
   },
 };

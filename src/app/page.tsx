@@ -106,11 +106,9 @@ function LandingPage({ onAuth }: { onAuth: (v: AuthView) => void }) {
       <header className="border-b bg-white/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-teal-500 flex items-center justify-center">
-              <Link2 className="w-4 h-4 text-white" />
-            </div>
+            <img src="/clipo-logo.png" alt="CLIPO" className="w-8 h-8 rounded-lg" />
             <span className="font-bold text-lg tracking-tight">
-              SnipLink
+              CLIPO
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -258,7 +256,7 @@ function LandingPage({ onAuth }: { onAuth: (v: AuthView) => void }) {
           <div className="max-w-5xl mx-auto px-4 sm:px-6">
             <motion.div {...fadeUp} transition={{ duration: 0.5, delay: 0.1 }} className="text-center mb-10">
               <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-3">
-                Kenapa SnipLink?
+                Kenapa CLIPO?
               </h2>
               <p className="text-slate-500 text-sm sm:text-base max-w-md mx-auto">
                 Fitur lengkap untuk kebutuhan link pendek kamu
@@ -327,14 +325,12 @@ function LandingPage({ onAuth }: { onAuth: (v: AuthView) => void }) {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400">
             <div className="flex items-center gap-2">
-              <div className="w-5 h-5 rounded bg-gradient-to-br from-violet-600 to-teal-500 flex items-center justify-center">
-                <Link2 className="w-2.5 h-2.5 text-white" />
-              </div>
+              <img src="/clipo-logo.png" alt="CLIPO" className="w-5 h-5 rounded" />
               <span className="font-semibold text-slate-500">
-                SnipLink
+                CLIPO
               </span>
             </div>
-            <p>&copy; {new Date().getFullYear()} SnipLink &mdash; Pemendek URL Cepat & Gratis</p>
+            <p>&copy; {new Date().getFullYear()} CLIPO &mdash; Pemendek URL Cepat & Gratis</p>
           </div>
         </div>
       </footer>
@@ -432,7 +428,7 @@ function AuthForm({ onBack, initialView = "login" }: { onBack: () => void; initi
 
       toast({
         title: "Registrasi berhasil!",
-        description: "Selamat datang di SnipLink!",
+        description: "Selamat datang di CLIPO!",
       });
 
       const loginRes = await signIn("credentials", {
@@ -475,11 +471,9 @@ function AuthForm({ onBack, initialView = "login" }: { onBack: () => void; initi
           </Button>
           <div className="w-px h-5 bg-slate-200" />
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-600 to-teal-500 flex items-center justify-center">
-              <Link2 className="w-3.5 h-3.5 text-white" />
-            </div>
+            <img src="/clipo-logo.png" alt="CLIPO" className="w-7 h-7 rounded-lg" />
             <span className="font-bold text-sm tracking-tight">
-              SnipLink
+              CLIPO
             </span>
           </div>
         </div>
@@ -493,16 +487,14 @@ function AuthForm({ onBack, initialView = "login" }: { onBack: () => void; initi
           className="w-full max-w-md"
         >
           <div className="text-center mb-8">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-600 to-teal-500 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-violet-500/20">
-              <Link2 className="w-8 h-8 text-white" />
-            </div>
+            <img src="/clipo-logo.png" alt="CLIPO" className="w-16 h-16 rounded-2xl mx-auto mb-4 shadow-lg" />
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
               {isLogin ? "Selamat Datang" : "Buat Akun Baru"}
             </h1>
             <p className="text-slate-500 text-sm mt-2">
               {isLogin
                 ? "Login untuk mulai memendekkan URL"
-                : "Daftar gratis dan mulai gunakan SnipLink"}
+                : "Daftar gratis dan mulai gunakan CLIPO"}
             </p>
           </div>
 
@@ -659,10 +651,8 @@ function AuthForm({ onBack, initialView = "login" }: { onBack: () => void; initi
       <footer className="border-t bg-white mt-auto">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4">
           <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
-            <div className="w-4 h-4 rounded bg-gradient-to-br from-violet-600 to-teal-500 flex items-center justify-center">
-              <Link2 className="w-2 h-2 text-white" />
-            </div>
-            <span>&copy; {new Date().getFullYear()} SnipLink &mdash; Pemendek URL Cepat & Gratis</span>
+            <img src="/clipo-logo.png" alt="CLIPO" className="w-4 h-4 rounded" />
+            <span>&copy; {new Date().getFullYear()} CLIPO &mdash; Pemendek URL Cepat & Gratis</span>
           </div>
         </div>
       </footer>
@@ -830,11 +820,9 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
       <header className="border-b bg-white/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-teal-500 flex items-center justify-center">
-              <Link2 className="w-4 h-4 text-white" />
-            </div>
+            <img src="/clipo-logo.png" alt="CLIPO" className="w-8 h-8 rounded-lg" />
             <span className="font-bold text-lg tracking-tight">
-              SnipLink
+              CLIPO
             </span>
           </div>
           <div className="flex items-center gap-3">
@@ -1152,14 +1140,12 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400">
             <div className="flex items-center gap-2">
-              <div className="w-5 h-5 rounded bg-gradient-to-br from-violet-600 to-teal-500 flex items-center justify-center">
-                <Link2 className="w-2.5 h-2.5 text-white" />
-              </div>
+              <img src="/clipo-logo.png" alt="CLIPO" className="w-5 h-5 rounded" />
               <span className="font-semibold text-slate-500">
-                SnipLink
+                CLIPO
               </span>
             </div>
-            <p>&copy; {new Date().getFullYear()} SnipLink &mdash; Pemendek URL Cepat & Gratis</p>
+            <p>&copy; {new Date().getFullYear()} CLIPO &mdash; Pemendek URL Cepat & Gratis</p>
           </div>
         </div>
       </footer>

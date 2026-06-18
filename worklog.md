@@ -125,3 +125,40 @@ Stage Summary:
 - Key insight: PrismaLibSql takes a config object {url, authToken}, NOT a pre-created client
 - Short URL domain: snip.link (fallback when NEXT_PUBLIC_BASE_URL not set)
 - Cleaned up turso-setup.js/ts temp files
+
+---
+Task ID: 3
+Agent: main
+Task: Rebrand SnipLink to CLIPO with new logo and favicon
+
+Work Log:
+- Updated page.tsx: all 8 remaining "SnipLink" text references → "CLIPO" (landing header was already done)
+- Updated page.tsx: all 7 logo icon divs (gradient bg + Link2) → img tags with /clipo-logo.png
+  - Landing header (was already done), landing footer, auth header, auth form center, auth footer, dashboard header, dashboard footer
+- Updated API fallback domains from snip.link to clipo.link in:
+  - src/app/api/shorten/route.ts
+  - src/app/api/links/route.ts
+- Verified zero remaining "SnipLink" references in page.tsx
+- Loading spinner logo intentionally kept as animated gradient (not a brand logo)
+
+Stage Summary:
+- All SnipLink references replaced with CLIPO across page.tsx
+- All logo icon divs replaced with img tags pointing to /clipo-logo.png
+- Fallback domain changed from snip.link to clipo.link in both API routes
+- New AI-generated logo and favicon in /public/
+
+---
+Task ID: 6
+Agent: verification
+Task: Verify all SnipLink→CLIPO changes and restart dev server
+
+Work Log:
+- Searched for remaining SnipLink references (none found)
+- Verified logo and favicon files exist in /public/
+- Restarted dev server
+- Verified page loads correctly in browser with CLIPO branding
+
+Stage Summary:
+- All SnipLink references successfully replaced with CLIPO
+- Logo and favicon displaying correctly
+- Dev server running and accessible
