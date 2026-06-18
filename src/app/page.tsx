@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession, signIn, signOut } from "next-auth/react";
 import {
@@ -27,6 +27,13 @@ import {
   Shield,
   BarChart3,
   LinkIcon,
+  Star,
+  Users,
+  TrendingUp,
+  Quote,
+  Heart,
+  Award,
+  Link,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -208,6 +215,58 @@ function HeroAnimation() {
   );
 }
 
+// ─── Animated Counter ─────────────────────────────────────────────
+function AnimatedCounter({ value, suffix }: { value: number; suffix: string }) {
+  const [display, setDisplay] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
+  const started = useRef(false);
+
+  useEffect(() => {
+    if (started.current) return;
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !started.current) {
+          started.current = true;
+          const duration = 2000;
+          const steps = 60;
+          const stepTime = duration / steps;
+          let current = 0;
+          const increment = value / steps;
+          const timer = setInterval(() => {
+            current += increment;
+            if (current >= value) {
+              setDisplay(value);
+              clearInterval(timer);
+            } else {
+              setDisplay(Math.floor(current));
+            }
+          }, stepTime);
+        }
+      },
+      { threshold: 0.3 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [value]);
+
+  const formatted =
+    value >= 1000000
+      ? `${(display / 1000000).toFixed(1)}M`
+      : value >= 1000
+        ? `${(display / 1000).toFixed(display >= 10000 ? 1 : 1)}K`
+        : value % 1 !== 0
+          ? display.toFixed(1)
+          : display.toLocaleString("id-ID");
+
+  return (
+    <span ref={ref}>
+      {formatted}{suffix}
+    </span>
+  );
+}
+
 // ─── Landing Page ────────────────────────────────────────────────
 function LandingPage({ onAuth }: { onAuth: (v: AuthView) => void }) {
   return (
@@ -280,6 +339,62 @@ function LandingPage({ onAuth }: { onAuth: (v: AuthView) => void }) {
                   Sudah punya akun? Masuk
                 </Button>
               </div>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* Stats */}
+        <section className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+          <motion.div {...fadeUp} transition={{ duration: 0.5, delay: 0.1 }} className="text-center mb-10">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-3">
+              Dipercaya Ribuan Orang
+            </h2>
+            <p className="text-slate-500 text-sm sm:text-base max-w-md mx-auto">
+              Angka-angka yang berbicara tentang CLIPO
+            </p>
+          </motion.div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            {[
+              { icon: Users, value: 12847, suffix: "+", label: "Pengguna Aktif", color: "from-violet-500 to-violet-400" },
+              { icon: Link, value: 384592, suffix: "+", label: "Link Dibuat", color: "from-teal-500 to-emerald-400" },
+              { icon: MousePointerClick, value: 2100000, suffix: "+", label: "Total Klik", color: "from-amber-500 to-orange-400" },
+              { icon: Star, value: 4.9, suffix: "/5", label: "Rating Pengguna", color: "from-rose-500 to-pink-400" },
+            ].map(({ icon: Icon, value, suffix, label, color }, idx) => (
+              <motion.div
+                key={label}
+                {...fadeUp}
+                transition={{ duration: 0.45, delay: 0.1 + idx * 0.08 }}
+              >
+                <Card className="border-slate-200/80 hover:shadow-lg transition-shadow text-center">
+                  <CardContent className="p-5 sm:p-6">
+                    <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center shadow-lg mx-auto mb-3`}>
+                      <Icon className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-1">
+                      <AnimatedCounter value={value} suffix={suffix} />
+                    </div>
+                    <p className="text-xs sm:text-sm text-slate-500 font-medium">{label}</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+
+        {/* Trusted By */}
+        <section className="py-8 sm:py-10 border-y border-slate-100">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6">
+            <p className="text-center text-xs font-semibold text-slate-400 uppercase tracking-widest mb-6">
+              Dipercaya oleh tim di perusahaan terkemuka
+            </p>
+            <motion.div {...fadeUp} transition={{ duration: 0.6, delay: 0.15 }} className="flex flex-wrap items-center justify-center gap-x-8 sm:gap-x-12 gap-y-4">
+              {[
+                "Tokopedia", "Gojek", "Bukalapak", "Traveloka", "Shopee", "Grab",
+              ].map((brand, i) => (
+                <span key={brand} className="text-base sm:text-lg font-bold text-slate-300 hover:text-slate-400 transition-colors select-none">
+                  {brand}
+                </span>
+              ))}
             </motion.div>
           </div>
         </section>
@@ -379,6 +494,107 @@ function LandingPage({ onAuth }: { onAuth: (v: AuthView) => void }) {
                       <p className="text-xs text-slate-500 leading-relaxed">{desc}</p>
                     </div>
                   </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Testimonials */}
+        <section className="bg-gradient-to-b from-white to-slate-50 py-12 sm:py-16">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6">
+            <motion.div {...fadeUp} transition={{ duration: 0.5, delay: 0.1 }} className="text-center mb-10">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-3">
+                Apa Kata Mereka?
+              </h2>
+              <p className="text-slate-500 text-sm sm:text-base max-w-md mx-auto">
+                Testimoni dari pengguna setia CLIPO
+              </p>
+            </motion.div>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+              {[
+                {
+                  name: "Rina Wulandari",
+                  role: "Digital Marketer",
+                  avatar: "RW",
+                  color: "from-violet-400 to-violet-600",
+                  rating: 5,
+                  text: "Sudah 2 tahun pakai CLIPO untuk semua kampanye iklan saya. Link-nya selalu aktif dan dashboard-nya super membantu tracking!",
+                },
+                {
+                  name: "Budi Santoso",
+                  role: "Content Creator",
+                  avatar: "BS",
+                  color: "from-teal-400 to-teal-600",
+                  rating: 5,
+                  text: "Dulu pake bit.ly, sekarang full pindah ke CLIPO. Lebih bersih, tanpa iklan, dan yang paling penting gratis!",
+                },
+                {
+                  name: "Diana Putri",
+                  role: "Startup Founder",
+                  avatar: "DP",
+                  color: "from-amber-400 to-orange-500",
+                  rating: 5,
+                  text: "Tim kami pakai CLIPO untuk sharing link ke klien. Fitur label kustom bikin link terlihat profesional.",
+                },
+                {
+                  name: "Andi Pratama",
+                  role: "Affiliate Marketer",
+                  avatar: "AP",
+                  color: "from-rose-400 to-pink-500",
+                  rating: 4,
+                  text: "Tracking klik-nya akurat banget. Bisa lihat performa setiap link affiliate tanpa tools berbayar tambahan.",
+                },
+                {
+                  name: "Sarah Amalia",
+                  role: "Social Media Manager",
+                  avatar: "SA",
+                  color: "from-blue-400 to-indigo-500",
+                  rating: 5,
+                  text: "Bio Instagram yang dulu kepotong sekarang muat semua berkat CLIPO. Wajib punya buat SMM!",
+                },
+                {
+                  name: "Fajar Nugroho",
+                  role: "Full-Stack Developer",
+                  avatar: "FN",
+                  color: "from-emerald-400 to-green-500",
+                  rating: 5,
+                  text: "API-nya cepat dan reliable. Saya integrasikan ke internal tools tim dan berjalan mulus tanpa masalah.",
+                },
+              ].map((t, idx) => (
+                <motion.div
+                  key={t.name}
+                  {...fadeUp}
+                  transition={{ duration: 0.4, delay: 0.1 + idx * 0.06 }}
+                >
+                  <Card className="h-full border-slate-200/80 hover:shadow-lg transition-shadow">
+                    <CardContent className="p-5 sm:p-6 flex flex-col">
+                      {/* Stars */}
+                      <div className="flex gap-0.5 mb-3">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`w-3.5 h-3.5 ${i < t.rating ? "text-amber-400 fill-amber-400" : "text-slate-200"}`}
+                          />
+                        ))}
+                      </div>
+                      {/* Quote */}
+                      <p className="text-sm text-slate-600 leading-relaxed flex-1 mb-4">
+                        &ldquo;{t.text}&rdquo;
+                      </p>
+                      {/* Author */}
+                      <div className="flex items-center gap-3 pt-3 border-t border-slate-100">
+                        <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${t.color} flex items-center justify-center text-white text-xs font-bold shadow-sm`}>
+                          {t.avatar}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-slate-800">{t.name}</p>
+                          <p className="text-xs text-slate-400">{t.role}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </motion.div>
               ))}
             </div>
