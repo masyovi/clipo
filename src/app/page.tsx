@@ -98,6 +98,116 @@ const fadeUp = {
   exit: { opacity: 0, y: -16 },
 };
 
+// ─── Hero Animated Background ────────────────────────────────────
+function HeroAnimation() {
+  const particles = useMemo(() =>
+    Array.from({ length: 18 }, (_, i) => ({
+      id: i,
+      size: Math.random() * 6 + 3,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      duration: Math.random() * 8 + 10,
+      delay: Math.random() * 5,
+      color: i % 3 === 0 ? "violet" : i % 3 === 1 ? "teal" : "slate",
+    })), []);
+
+  const connections = useMemo(() =>
+    Array.from({ length: 12 }, (_, i) => ({
+      id: i,
+      x1: Math.random() * 80 + 10,
+      y1: Math.random() * 80 + 10,
+      x2: Math.random() * 80 + 10,
+      y2: Math.random() * 80 + 10,
+      duration: Math.random() * 6 + 8,
+      delay: Math.random() * 4,
+    })), []);
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* Soft gradient base */}
+      <div className="absolute inset-0 bg-gradient-to-br from-violet-50/50 via-white to-teal-50/30" />
+
+      {/* Animated connections */}
+      <svg className="absolute inset-0 w-full h-full opacity-[0.12]">
+        {connections.map((c) => (
+          <motion.line
+            key={c.id}
+            x1={`${c.x1}%`} y1={`${c.y1}%`}
+            x2={`${c.x2}%`} y2={`${c.y2}%`}
+            stroke="url(#grad)"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={{ pathLength: 1, opacity: [0, 0.6, 0] }}
+            transition={{
+              pathLength: { duration: c.duration, repeat: Infinity, ease: "easeInOut" },
+              opacity: { duration: c.duration, repeat: Infinity, ease: "easeInOut", delay: c.delay },
+            }}
+          />
+        ))}
+        <defs>
+          <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#8b5cf6" />
+            <stop offset="100%" stopColor="#14b8a6" />
+          </linearGradient>
+        </defs>
+      </svg>
+
+      {/* Floating particles */}
+      {particles.map((p) => (
+        <motion.div
+          key={p.id}
+          className={`absolute rounded-full ${
+            p.color === "violet"
+              ? "bg-violet-400/30"
+              : p.color === "teal"
+              ? "bg-teal-400/25"
+              : "bg-slate-300/20"
+          }`}
+          style={{
+            width: p.size,
+            height: p.size,
+            left: `${p.x}%`,
+            top: `${p.y}%`,
+          }}
+          animate={{
+            x: [0, Math.random() * 60 - 30, Math.random() * 40 - 20, 0],
+            y: [0, Math.random() * -50 - 10, Math.random() * 30 - 15, 0],
+            scale: [1, 1.3, 0.8, 1],
+            opacity: [0.4, 0.8, 0.3, 0.5],
+          }}
+          transition={{
+            duration: p.duration,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: p.delay,
+          }}
+        />
+      ))}
+
+      {/* Glowing orbs */}
+      <motion.div
+        className="absolute w-72 h-72 rounded-full bg-violet-400/10 blur-3xl"
+        style={{ top: "10%", left: "15%" }}
+        animate={{ x: [0, 40, -20, 0], y: [0, -30, 20, 0] }}
+        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div
+        className="absolute w-60 h-60 rounded-full bg-teal-400/10 blur-3xl"
+        style={{ bottom: "10%", right: "10%" }}
+        animate={{ x: [0, -30, 25, 0], y: [0, 25, -15, 0] }}
+        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+      />
+      <motion.div
+        className="absolute w-48 h-48 rounded-full bg-violet-300/8 blur-3xl"
+        style={{ top: "50%", left: "60%" }}
+        animate={{ x: [0, 20, -35, 0], y: [0, -20, 30, 0] }}
+        transition={{ duration: 14, repeat: Infinity, ease: "easeInOut", delay: 4 }}
+      />
+    </div>
+  );
+}
+
 // ─── Landing Page ────────────────────────────────────────────────
 function LandingPage({ onAuth }: { onAuth: (v: AuthView) => void }) {
   return (
@@ -134,60 +244,43 @@ function LandingPage({ onAuth }: { onAuth: (v: AuthView) => void }) {
       <main className="flex-1">
         {/* Hero */}
         <section className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-violet-100/60 via-teal-50/40 to-transparent" />
-          <div className="relative max-w-5xl mx-auto px-4 sm:px-6 pt-12 sm:pt-20 pb-10 sm:pb-16">
-            <div className="grid lg:grid-cols-2 gap-8 sm:gap-12 items-center">
-              {/* Left: Copy */}
-              <motion.div {...fadeUp} transition={{ duration: 0.5 }} className="order-2 lg:order-1">
-                <Badge variant="secondary" className="mb-4 px-3 py-1 text-xs font-medium border-violet-200 bg-violet-50 text-violet-700">
-                  <Sparkles className="w-3 h-3 mr-1" />
-                  Cepat, Gratis, dan Mudah
-                </Badge>
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-slate-900 leading-tight mb-4">
-                  Perpendek URL Kamu{" "}
-                  <span className="bg-gradient-to-r from-violet-600 to-teal-500 bg-clip-text text-transparent">
-                    Dalam Sekejap
-                  </span>
-                </h1>
-                <p className="text-slate-500 text-sm sm:text-base lg:text-lg max-w-lg mb-8 leading-relaxed">
-                  Ubah URL panjang yang sulit diingat jadi link pendek yang rapi. Dilengkapi tracking klik, tanpa batas, dan gratis selamanya.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <Button
-                    size="lg"
-                    className="h-12 px-8 bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-700 hover:to-violet-600 text-white font-semibold shadow-lg shadow-violet-500/25 transition-all text-base"
-                    onClick={() => onAuth("register")}
-                  >
-                    Mulai Sekarang — Gratis
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="h-12 px-6 border-slate-200 hover:bg-slate-50 text-slate-600"
-                    onClick={() => onAuth("login")}
-                  >
-                    Sudah punya akun? Masuk
-                  </Button>
-                </div>
-              </motion.div>
+          {/* Animated Background */}
+          <HeroAnimation />
 
-              {/* Right: Illustration */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.92 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.6, delay: 0.15 }}
-                className="order-1 lg:order-2"
-              >
-                <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-violet-500/10 border border-slate-200/50">
-                  <img
-                    src="/hero-illustration.png"
-                    alt="URL Shortener Illustration"
-                    className="w-full h-auto object-cover"
-                  />
-                </div>
-              </motion.div>
-            </div>
+          <div className="relative max-w-3xl mx-auto px-4 sm:px-6 pt-16 sm:pt-24 pb-12 sm:pb-20 text-center">
+            <motion.div {...fadeUp} transition={{ duration: 0.5 }}>
+              <Badge variant="secondary" className="mb-5 px-3 py-1 text-xs font-medium border-violet-200 bg-violet-50 text-violet-700">
+                <Sparkles className="w-3 h-3 mr-1" />
+                Cepat, Gratis, dan Mudah
+              </Badge>
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-slate-900 leading-tight mb-4">
+                Perpendek URL Kamu{" "}
+                <span className="bg-gradient-to-r from-violet-600 to-teal-500 bg-clip-text text-transparent">
+                  Dalam Sekejap
+                </span>
+              </h1>
+              <p className="text-slate-500 text-sm sm:text-base lg:text-lg max-w-lg mx-auto mb-8 leading-relaxed">
+                Ubah URL panjang yang sulit diingat jadi link pendek yang rapi. Dilengkapi tracking klik, tanpa batas, dan gratis selamanya.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button
+                  size="lg"
+                  className="h-12 px-8 bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-700 hover:to-violet-600 text-white font-semibold shadow-lg shadow-violet-500/25 transition-all text-base"
+                  onClick={() => onAuth("register")}
+                >
+                  Mulai Sekarang — Gratis
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="h-12 px-6 border-slate-200 hover:bg-slate-50 text-slate-600"
+                  onClick={() => onAuth("login")}
+                >
+                  Sudah punya akun? Masuk
+                </Button>
+              </div>
+            </motion.div>
           </div>
         </section>
 
