@@ -389,7 +389,7 @@ function LandingPage({ onAuth }: { onAuth: (v: AuthView) => void }) {
             </p>
             <motion.div {...fadeUp} transition={{ duration: 0.6, delay: 0.15 }} className="flex flex-wrap items-center justify-center gap-x-8 sm:gap-x-12 gap-y-4">
               {[
-                "Tokopedia", "Gojek", "Bukalapak", "Traveloka", "Shopee", "Grab",
+                "NovaTech", "KreatifLab", "PixelForge", "DataNusa", "SkyBridge", "OmniFlow",
               ].map((brand, i) => (
                 <span key={brand} className="text-base sm:text-lg font-bold text-slate-300 hover:text-slate-400 transition-colors select-none">
                   {brand}
@@ -528,7 +528,7 @@ function LandingPage({ onAuth }: { onAuth: (v: AuthView) => void }) {
                   avatar: "BS",
                   color: "from-teal-400 to-teal-600",
                   rating: 5,
-                  text: "Dulu pake bit.ly, sekarang full pindah ke CLIPO. Lebih bersih, tanpa iklan, dan yang paling penting gratis!",
+                  text: "Sudah coba banyak tools, tapi CLIPO yang paling bersih dan tanpa iklan. Gratis pula! Langsung jadi andalan saya.",
                 },
                 {
                   name: "Diana Putri",
