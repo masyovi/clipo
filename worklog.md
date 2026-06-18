@@ -99,3 +99,29 @@ Stage Summary:
 - No hardcoded "alamatweb.my.id" in UI (uses API-provided shortUrl)
 - Google OAuth gracefully disabled with user-friendly messaging
 - All browser-verified: landing page, login page, register page
+
+---
+Task ID: 3
+Agent: Main Agent
+Task: Migrate database from local SQLite to Turso (libSQL cloud)
+
+Work Log:
+- Installed @prisma/adapter-libsql and @libsql/client
+- Updated .env with TURSO_AUTH_TOKEN and TURSO_DATABASE_URL
+- Updated prisma/schema.prisma (kept sqlite provider for adapter compat)
+- Created turso-setup.js to create tables directly on Turso (4 tables: User, Account, Session, ShortUrl + triggers)
+- Discovered critical bug: PrismaLibSql is a FACTORY not a class — must pass config object, not a libsql client instance
+- Fixed db.ts: `new PrismaLibSql({ url, authToken })` instead of `new PrismaLibSql(createClient(...))`
+- Set DATABASE_URL="file:./db/dummy.db" in .env (Prisma requires valid file: URL in schema even with adapter)
+- Added serverExternalPackages for @libsql/client and @prisma/adapter-libsql in next.config.ts
+- Used lazy singleton pattern to avoid blocking server startup
+- Verified: Registration creates user in Turso ✅
+- Verified: Short URL creation stores in Turso ✅  
+- Verified: Short URL redirect (307) works ✅
+- Verified: Dashboard displays links with snip.link domain ✅
+
+Stage Summary:
+- Database fully migrated from local SQLite to Turso cloud
+- Key insight: PrismaLibSql takes a config object {url, authToken}, NOT a pre-created client
+- Short URL domain: snip.link (fallback when NEXT_PUBLIC_BASE_URL not set)
+- Cleaned up turso-setup.js/ts temp files
