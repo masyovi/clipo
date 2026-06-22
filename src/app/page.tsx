@@ -34,6 +34,7 @@ import {
   Heart,
   Award,
   Link,
+  Pencil,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,6 +53,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 // ─── Types ───────────────────────────────────────────────────────
 interface ShortLink {
@@ -982,6 +991,10 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
   const [deleteTarget, setDeleteTarget] = useState<ShortLink | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showAll, setShowAll] = useState(false);
+  const [editTarget, setEditTarget] = useState<ShortLink | null>(null);
+  const [editCode, setEditCode] = useState("");
+  const [editError, setEditError] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
 
   const fetchLinks = useCallback(async () => {
@@ -1105,6 +1118,66 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") handleShorten();
+  };
+
+  const openEdit = (link: ShortLink) => {
+    // Extract just the code part from shortUrl (after last /)
+    const code = link.shortCode;
+    setEditTarget(link);
+    setEditCode(code);
+    setEditError("");
+  };
+
+  const handleEdit = async () => {
+    if (!editTarget || !editCode.trim()) return;
+    const code = editCode.trim().toLowerCase();
+
+    if (!/^[a-z0-9_-]{3,30}$/.test(code)) {
+      setEditError("Hanya huruf kecil, angka, strip, dan underscore. Min 3 karakter.");
+      return;
+    }
+
+    setIsEditing(true);
+    setEditError("");
+
+    try {
+      const res = await fetch("/api/links", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: editTarget.id, shortCode: code }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setEditError(data.error || "Gagal mengubah.");
+        return;
+      }
+
+      // Update local state
+      setLinks((prev) =>
+        prev.map((l) => (l.id === editTarget.id ? { ...l, shortCode: data.shortCode, shortUrl: data.shortUrl } : l))
+      );
+
+      // Update result if it's the same link
+      if (result?.id === editTarget.id) {
+        setResult((prev) => prev ? { ...prev, shortCode: data.shortCode, shortUrl: data.shortUrl } : null);
+      }
+
+      toast({ title: "Berhasil!", description: `Short code diubah ke: ${code}` });
+      setEditTarget(null);
+      setEditCode("");
+    } catch {
+      setEditError("Gagal terhubung ke server.");
+    } finally {
+      setIsEditing(false);
+    }
+  };
+
+  const getEditPreview = () => {
+    if (!editTarget || !editCode.trim()) return "";
+    const baseUrl = editTarget.shortUrl.substring(0, editTarget.shortUrl.lastIndexOf("/"));
+    return `${baseUrl}/${editCode.trim().toLowerCase()}`;
   };
 
   const formatDate = (dateStr: string) => {
@@ -1411,7 +1484,16 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-500 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="h-8 w-8 p-0 hover:bg-amber-50 hover:text-amber-600 text-slate-400 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                                onClick={() => openEdit(link)}
+                                title="Edit short code"
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-500 text-slate-400 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                                 onClick={() => setDeleteTarget(link)}
                                 title="Hapus link"
                               >
@@ -1458,6 +1540,97 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
           </div>
         </div>
       </footer>
+
+      {/* Edit Short Code Dialog */}
+      <Dialog
+        open={!!editTarget}
+        onOpenChange={(open) => {
+          if (!open) { setEditTarget(null); setEditError(""); }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="w-4 h-4 text-violet-600" />
+              Edit Short Code
+            </DialogTitle>
+            <DialogDescription>
+              Ubah bagian belakang URL pendek sesuai keinginanmu.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-slate-700">Short Code Baru</Label>
+              <div className="flex items-center gap-0">
+                <div className="shrink-0 h-10 px-3 flex items-center text-sm text-slate-400 bg-slate-50 border border-r-0 border-slate-200 rounded-l-lg">
+                  {editTarget ? editTarget.shortUrl.substring(0, editTarget.shortUrl.lastIndexOf("/") + 1) : ""}
+                </div>
+                <Input
+                  value={editCode}
+                  onChange={(e) => {
+                    setEditCode(e.target.value);
+                    setEditError("");
+                  }}
+                  onKeyDown={(e) => e.key === "Enter" && handleEdit()}
+                  placeholder="custom-name"
+                  className="rounded-l-none h-10 font-mono text-sm"
+                  autoFocus
+                  disabled={isEditing}
+                />
+              </div>
+              {getEditPreview() && (
+                <p className="text-xs text-slate-400 mt-1">
+                  Preview: <code className="text-violet-600 font-semibold">{getEditPreview()}</code>
+                </p>
+              )}
+            </div>
+
+            <AnimatePresence>
+              {editError && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="overflow-hidden"
+                >
+                  <p className="text-sm text-red-500 bg-red-50 rounded-lg px-3 py-2">{editError}</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <div className="text-xs text-slate-400 space-y-1">
+              <p>• Hanya huruf kecil, angka, strip (-), dan underscore (_)</p>
+              <p>• Minimal 3 karakter, maksimal 30</p>
+              <p>• Tidak boleh sama dengan link lain</p>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => { setEditTarget(null); setEditError(""); }}
+              disabled={isEditing}
+            >
+              Batal
+            </Button>
+            <Button
+              onClick={handleEdit}
+              disabled={isEditing || !editCode.trim() || editCode.trim() === editTarget?.shortCode}
+              className="bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-700 hover:to-violet-600 text-white"
+            >
+              {isEditing ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
+                  Menyimpan...
+                </>
+              ) : (
+                "Simpan"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>

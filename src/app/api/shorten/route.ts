@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
         title: existing.title,
         clicks: existing.clicks,
         createdAt: existing.createdAt,
-        shortUrl: `${getBaseUrl()}/${existing.shortCode}`,
+        shortUrl: `${getBaseUrl(request)}/${existing.shortCode}`,
       });
     }
 
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
         title: shortUrl.title,
         clicks: shortUrl.clicks,
         createdAt: shortUrl.createdAt,
-        shortUrl: `${getBaseUrl()}/${shortUrl.shortCode}`,
+        shortUrl: `${getBaseUrl(request)}/${shortUrl.shortCode}`,
       },
       { status: 201 }
     );
@@ -99,9 +99,12 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function getBaseUrl(): string {
+function getBaseUrl(request: NextRequest): string {
   if (process.env.NEXT_PUBLIC_BASE_URL) {
     return process.env.NEXT_PUBLIC_BASE_URL.replace(/\/$/, "");
   }
-  return "clipo.link";
+  const forwarded = request.headers.get("x-forwarded-host");
+  const host = forwarded || request.headers.get("host") || "localhost:3000";
+  const protocol = request.headers.get("x-forwarded-proto") || "https";
+  return `${protocol}://${host}`;
 }
