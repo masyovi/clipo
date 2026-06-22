@@ -8,8 +8,8 @@ const globalForPrisma = globalThis as unknown as {
 
 function createPrismaClient() {
   const adapter = new PrismaLibSql({
-    url: 'libsql://short-vercel-icfg-hhavkgzx9ptxjevhtapmjv5p.aws-ap-northeast-1.turso.io',
-    authToken: 'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3ODE3NzIzNzksImlkIjoiMDE5ZWQ5ZTgtZTAwMS03NGI4LTk0NmItMmE3NWI5ZTVmNGIzIiwicmlkIjoiYmExMzY2NjctNzgwYS00ZDA5LWFlNDEtZDc4YWEyMjM4OWUzIn0.DOD_MJfZBhSzYc_OMZ1kJwQ0XBQH_ZSPLdAJ4wDa_Ltl9mWuufCcdyauhe7dH7qPuTSvh1pCid2PblA0g3hmCw',
+    url: 'libsql://clipo-nustech.aws-ap-northeast-1.turso.io',
+    authToken: 'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODIxMzk2NTMsImlkIjoiMDE5ZWVmY2MtZGUwMS03MzhiLTk4YTAtMmQ1MmZhZGU5MzFkIiwicmlkIjoiNWEyYTUyZTktYzNkYS00YTZjLTg5ZDctN2IwNDBmZGNhNzU2In0.6fCSQP6u3Oad1M76WNQkTGYAJY9epTUQa78_0PJnIyfKA7FmQpPI2YKI5754VUUOl5JvWmwESSo1B9z9BDKQBg',
   })
 
   return new PrismaClient({ adapter })
