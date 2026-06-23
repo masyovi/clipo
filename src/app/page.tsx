@@ -238,8 +238,8 @@ function AnimatedCounter({ value, suffix }: { value: number; suffix: string }) {
       ([entry]) => {
         if (entry.isIntersecting && !started.current) {
           started.current = true;
-          const duration = 2000;
-          const steps = 60;
+          const duration = 1800;
+          const steps = 30;
           const stepTime = duration / steps;
           let current = 0;
           const increment = value / steps;
@@ -254,24 +254,22 @@ function AnimatedCounter({ value, suffix }: { value: number; suffix: string }) {
           }, stepTime);
         }
       },
-      { threshold: 0.3 }
+      { threshold: 0.2 }
     );
     observer.observe(el);
     return () => observer.disconnect();
   }, [value]);
 
-  const formatted =
-    value >= 1000000
-      ? `${(display / 1000000).toFixed(1)}M`
-      : value >= 1000
-        ? `${(display / 1000).toFixed(display >= 10000 ? 1 : 1)}K`
-        : value % 1 !== 0
-          ? display.toFixed(1)
-          : display.toLocaleString("id-ID");
+  const formatNumber = (n: number): string => {
+    if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
+    if (n >= 1000) return `${(n / 1000).toFixed(1)}K`;
+    if (n % 1 !== 0) return n.toFixed(1);
+    return n.toString();
+  };
 
   return (
-    <span ref={ref}>
-      {formatted}{suffix}
+    <span ref={ref} className="inline-block">
+      {formatNumber(display)}{suffix}
     </span>
   );
 }
@@ -362,7 +360,7 @@ function LandingPage({ onAuth }: { onAuth: (v: AuthView) => void }) {
               Angka-angka yang berbicara tentang CLIPO
             </p>
           </motion.div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
             {[
               { icon: Users, value: 12847, suffix: "+", label: "Pengguna Aktif", color: "from-violet-500 to-violet-400" },
               { icon: Link, value: 384592, suffix: "+", label: "Link Dibuat", color: "from-teal-500 to-emerald-400" },
@@ -371,18 +369,19 @@ function LandingPage({ onAuth }: { onAuth: (v: AuthView) => void }) {
             ].map(({ icon: Icon, value, suffix, label, color }, idx) => (
               <motion.div
                 key={label}
+                className="min-w-0"
                 {...fadeUp}
                 transition={{ duration: 0.45, delay: 0.1 + idx * 0.08 }}
               >
-                <Card className="border-slate-200/80 hover:shadow-lg transition-shadow text-center">
-                  <CardContent className="p-5 sm:p-6">
-                    <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center shadow-lg mx-auto mb-3`}>
-                      <Icon className="w-5 h-5 text-white" />
+                <Card className="border-slate-200/80 hover:shadow-lg transition-shadow text-center overflow-hidden">
+                  <CardContent className="p-3 sm:p-6">
+                    <div className={`w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-gradient-to-br ${color} flex items-center justify-center shadow-lg mx-auto mb-2 sm:mb-3 shrink-0`}>
+                      <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                     </div>
-                    <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-1">
+                    <div className="text-lg sm:text-3xl font-extrabold text-slate-900 mb-0.5 sm:mb-1 truncate">
                       <AnimatedCounter value={value} suffix={suffix} />
                     </div>
-                    <p className="text-xs sm:text-sm text-slate-500 font-medium">{label}</p>
+                    <p className="text-[10px] sm:text-sm text-slate-500 font-medium leading-tight">{label}</p>
                   </CardContent>
                 </Card>
               </motion.div>
