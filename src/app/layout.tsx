@@ -1,36 +1,32 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/components/auth-provider";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
-  title: "CLIPO - Pemendek URL Cepat & Gratis",
+  title: "Orc - Pemendek URL Cepat & Gratis",
   description: "Pemendek URL terpercaya. Ubah URL panjang jadi pendek dalam sekejap. Gratis, tanpa registrasi, dan tanpa batas.",
-  keywords: ["URL shortener", "pemendek URL", "short link", "bitly", "clipo"],
-  authors: [{ name: "CLIPO" }],
+  keywords: ["URL shortener", "pemendek URL", "short link", "orc"],
+  authors: [{ name: "Orc" }],
   icons: {
-    icon: "/clipo-favicon.png",
+    icon: "/orc-favicon.png",
   },
   openGraph: {
-    title: "CLIPO - Pemendek URL Cepat & Gratis",
+    title: "Orc - Pemendek URL Cepat & Gratis",
     description: "Ubah URL panjang jadi pendek dalam sekejap.",
-    siteName: "CLIPO",
+    siteName: "Orc",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "CLIPO - Pemendek URL",
+    title: "Orc - Pemendek URL",
     description: "Ubah URL panjang jadi pendek dalam sekejap.",
   },
 };
@@ -43,7 +39,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
+        className={`${spaceGrotesk.variable} font-[family-name:var(--font-space-grotesk)] antialiased bg-background text-foreground`}
       >
         <AuthProvider>
           {children}

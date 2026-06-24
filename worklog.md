@@ -162,3 +162,33 @@ Stage Summary:
 - All SnipLink references successfully replaced with CLIPO
 - Logo and favicon displaying correctly
 - Dev server running and accessible
+---
+Task ID: 1
+Agent: Main Agent
+Task: Investigate file reversion issue and restore all missing features
+
+Work Log:
+- Read all key project files to assess current state
+- Found files were NOT fully reverted, but several features were missing/broken
+- Key issues found:
+  1. Missing middleware.ts (proxy.ts existed but was never called)
+  2. All "CLIPO" text in page.tsx never renamed to "Orc"
+  3. QR Code button and dialog missing from dashboard (state existed but no UI)
+  4. Login/register auto-redirect to dashboard missing
+  5. Logout confirmation dialog missing (state existed but no UI, signOut not called)
+  6. proxy.ts SHORT_CODE_REGEX limited to 6-12 chars (custom codes can be 3-30)
+- Discovered Next.js 16 uses proxy.ts natively (middleware.ts is deprecated)
+- Created middleware.ts first, then deleted it after discovering the conflict
+- Installed missing npm packages: qrcode.react, qrcode
+- Applied all fixes via MultiEdit and Edit tools
+- Started dev server via daemon-launch.js for persistent process
+- Verified with agent-browser: landing page, login, register all working
+
+Stage Summary:
+- All "CLIPO" → "Orc" renaming complete in page.tsx
+- QR Code button added to each link card in dashboard
+- QR Code dialog with SVG display + PNG download added
+- Logout confirmation AlertDialog with signOut({ redirect: false }) added
+- Login/register auto-redirect useEffect added to Home component
+- proxy.ts regex updated to {3,30} for custom short codes
+- Server running and verified: landing page 200, auth routes working, clean URLs (/login, /register)

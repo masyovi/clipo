@@ -35,7 +35,11 @@ import {
   Award,
   Link,
   Pencil,
+  QrCode,
+  Download,
 } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
+import QRCode from "qrcode";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -282,9 +286,9 @@ function LandingPage({ onAuth }: { onAuth: (v: AuthView) => void }) {
       <header className="border-b bg-white/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src="/clipo-logo.png" alt="CLIPO" className="w-8 h-8 rounded-lg" />
-            <span className="font-bold text-lg tracking-tight">
-              CLIPO
+            <img src="/orc-logo.png" alt="Orc" className="w-8 h-8 rounded-lg" />
+            <span className="font-black text-xl tracking-tighter uppercase">
+              Orc
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -319,7 +323,7 @@ function LandingPage({ onAuth }: { onAuth: (v: AuthView) => void }) {
                 <Sparkles className="w-3 h-3 mr-1" />
                 Cepat, Gratis, dan Mudah
               </Badge>
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-slate-900 leading-tight mb-4">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 leading-tight mb-4">
                 Perpendek URL Kamu{" "}
                 <span className="bg-gradient-to-r from-violet-600 to-teal-500 bg-clip-text text-transparent">
                   Dalam Sekejap
@@ -353,11 +357,11 @@ function LandingPage({ onAuth }: { onAuth: (v: AuthView) => void }) {
         {/* Stats */}
         <section className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
           <motion.div {...fadeUp} transition={{ duration: 0.5, delay: 0.1 }} className="text-center mb-10">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-3">
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mb-3">
               Dipercaya Ribuan Orang
             </h2>
             <p className="text-slate-500 text-sm sm:text-base max-w-md mx-auto">
-              Angka-angka yang berbicara tentang CLIPO
+              Angka-angka yang berbicara tentang Orc
             </p>
           </motion.div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
@@ -366,25 +370,20 @@ function LandingPage({ onAuth }: { onAuth: (v: AuthView) => void }) {
               { icon: Link, value: 384592, suffix: "+", label: "Link Dibuat", color: "from-teal-500 to-emerald-400" },
               { icon: MousePointerClick, value: 2100000, suffix: "+", label: "Total Klik", color: "from-amber-500 to-orange-400" },
               { icon: Star, value: 4.9, suffix: "/5", label: "Rating Pengguna", color: "from-rose-500 to-pink-400" },
-            ].map(({ icon: Icon, value, suffix, label, color }, idx) => (
-              <motion.div
-                key={label}
-                className="min-w-0"
-                {...fadeUp}
-                transition={{ duration: 0.45, delay: 0.1 + idx * 0.08 }}
-              >
-                <Card className="border-slate-200/80 hover:shadow-lg transition-shadow text-center overflow-hidden">
-                  <CardContent className="p-3 sm:p-6">
-                    <div className={`w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-gradient-to-br ${color} flex items-center justify-center shadow-lg mx-auto mb-2 sm:mb-3 shrink-0`}>
+            ].map(({ icon: Icon, value, suffix, label, color }) => (
+              <div key={label} className="stat-card-animate">
+                <Card className="border-slate-200/80 hover:shadow-lg transition-shadow text-center overflow-hidden h-full">
+                  <CardContent className="p-3 sm:p-6 flex flex-col items-center justify-center">
+                    <div className={`w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-gradient-to-br ${color} flex items-center justify-center shadow-lg mb-2 sm:mb-3 shrink-0`}>
                       <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                     </div>
-                    <div className="text-lg sm:text-3xl font-extrabold text-slate-900 mb-0.5 sm:mb-1 truncate">
+                    <div className="text-lg sm:text-3xl font-black text-slate-900 mb-0.5 sm:mb-1 leading-tight">
                       <AnimatedCounter value={value} suffix={suffix} />
                     </div>
                     <p className="text-[10px] sm:text-sm text-slate-500 font-medium leading-tight">{label}</p>
                   </CardContent>
                 </Card>
-              </motion.div>
+              </div>
             ))}
           </div>
         </section>
@@ -410,7 +409,7 @@ function LandingPage({ onAuth }: { onAuth: (v: AuthView) => void }) {
         {/* How It Works */}
         <section className="max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
           <motion.div {...fadeUp} transition={{ duration: 0.5, delay: 0.1 }} className="text-center mb-10">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-3">
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mb-3">
               Cara Kerja
             </h2>
             <p className="text-slate-500 text-sm sm:text-base max-w-md mx-auto">
@@ -471,8 +470,8 @@ function LandingPage({ onAuth }: { onAuth: (v: AuthView) => void }) {
         <section className="bg-gradient-to-b from-slate-50 to-white py-12 sm:py-16">
           <div className="max-w-5xl mx-auto px-4 sm:px-6">
             <motion.div {...fadeUp} transition={{ duration: 0.5, delay: 0.1 }} className="text-center mb-10">
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-3">
-                Kenapa CLIPO?
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mb-3">
+                Kenapa Orc?
               </h2>
               <p className="text-slate-500 text-sm sm:text-base max-w-md mx-auto">
                 Fitur lengkap untuk kebutuhan link pendek kamu
@@ -512,11 +511,11 @@ function LandingPage({ onAuth }: { onAuth: (v: AuthView) => void }) {
         <section className="bg-gradient-to-b from-white to-slate-50 py-12 sm:py-16">
           <div className="max-w-5xl mx-auto px-4 sm:px-6">
             <motion.div {...fadeUp} transition={{ duration: 0.5, delay: 0.1 }} className="text-center mb-10">
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-3">
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mb-3">
                 Apa Kata Mereka?
               </h2>
               <p className="text-slate-500 text-sm sm:text-base max-w-md mx-auto">
-                Testimoni dari pengguna setia CLIPO
+                Testimoni dari pengguna setia Orc
               </p>
             </motion.div>
 
@@ -528,7 +527,7 @@ function LandingPage({ onAuth }: { onAuth: (v: AuthView) => void }) {
                   avatar: "RW",
                   color: "from-violet-400 to-violet-600",
                   rating: 5,
-                  text: "Sudah 2 tahun pakai CLIPO untuk semua kampanye iklan saya. Link-nya selalu aktif dan dashboard-nya super membantu tracking!",
+                  text: "Sudah 2 tahun pakai Orc untuk semua kampanye iklan saya. Link-nya selalu aktif dan dashboard-nya super membantu tracking!",
                 },
                 {
                   name: "Budi Santoso",
@@ -536,7 +535,7 @@ function LandingPage({ onAuth }: { onAuth: (v: AuthView) => void }) {
                   avatar: "BS",
                   color: "from-teal-400 to-teal-600",
                   rating: 5,
-                  text: "Sudah coba banyak tools, tapi CLIPO yang paling bersih dan tanpa iklan. Gratis pula! Langsung jadi andalan saya.",
+                  text: "Sudah coba banyak tools, tapi Orc yang paling bersih dan tanpa iklan. Gratis pula! Langsung jadi andalan saya.",
                 },
                 {
                   name: "Diana Putri",
@@ -544,7 +543,7 @@ function LandingPage({ onAuth }: { onAuth: (v: AuthView) => void }) {
                   avatar: "DP",
                   color: "from-amber-400 to-orange-500",
                   rating: 5,
-                  text: "Tim kami pakai CLIPO untuk sharing link ke klien. Fitur label kustom bikin link terlihat profesional.",
+                  text: "Tim kami pakai Orc untuk sharing link ke klien. Fitur label kustom bikin link terlihat profesional.",
                 },
                 {
                   name: "Andi Pratama",
@@ -560,7 +559,7 @@ function LandingPage({ onAuth }: { onAuth: (v: AuthView) => void }) {
                   avatar: "SA",
                   color: "from-blue-400 to-indigo-500",
                   rating: 5,
-                  text: "Bio Instagram yang dulu kepotong sekarang muat semua berkat CLIPO. Wajib punya buat SMM!",
+                  text: "Bio Instagram yang dulu kepotong sekarang muat semua berkat Orc. Wajib punya buat SMM!",
                 },
                 {
                   name: "Fajar Nugroho",
@@ -616,7 +615,7 @@ function LandingPage({ onAuth }: { onAuth: (v: AuthView) => void }) {
               <CardContent className="p-8 sm:p-12 text-center relative">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent)]" />
                 <div className="relative">
-                  <h2 className="text-2xl sm:text-3xl font-extrabold mb-3">
+                  <h2 className="text-2xl sm:text-3xl font-black mb-3">
                     Siap Memendekkan URL?
                   </h2>
                   <p className="text-violet-100 text-sm sm:text-base max-w-md mx-auto mb-6">
@@ -642,12 +641,12 @@ function LandingPage({ onAuth }: { onAuth: (v: AuthView) => void }) {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400">
             <div className="flex items-center gap-2">
-              <img src="/clipo-logo.png" alt="CLIPO" className="w-5 h-5 rounded" />
+              <img src="/orc-logo.png" alt="Orc" className="w-5 h-5 rounded" />
               <span className="font-semibold text-slate-500">
-                CLIPO
+                Orc
               </span>
             </div>
-            <p>&copy; {new Date().getFullYear()} CLIPO &mdash; Pemendek URL Cepat & Gratis</p>
+            <p>&copy; {new Date().getFullYear()} Orc &mdash; Pemendek URL Cepat & Gratis</p>
           </div>
         </div>
       </footer>
@@ -745,7 +744,7 @@ function AuthForm({ onBack, initialView = "login" }: { onBack: () => void; initi
 
       toast({
         title: "Registrasi berhasil!",
-        description: "Selamat datang di CLIPO!",
+        description: "Selamat datang di Orc!",
       });
 
       const loginRes = await signIn("credentials", {
@@ -788,9 +787,9 @@ function AuthForm({ onBack, initialView = "login" }: { onBack: () => void; initi
           </Button>
           <div className="w-px h-5 bg-slate-200" />
           <div className="flex items-center gap-2">
-            <img src="/clipo-logo.png" alt="CLIPO" className="w-7 h-7 rounded-lg" />
+            <img src="/orc-logo.png" alt="Orc" className="w-7 h-7 rounded-lg" />
             <span className="font-bold text-sm tracking-tight">
-              CLIPO
+              Orc
             </span>
           </div>
         </div>
@@ -804,14 +803,14 @@ function AuthForm({ onBack, initialView = "login" }: { onBack: () => void; initi
           className="w-full max-w-md"
         >
           <div className="text-center mb-8">
-            <img src="/clipo-logo.png" alt="CLIPO" className="w-16 h-16 rounded-2xl mx-auto mb-4 shadow-lg" />
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+            <img src="/orc-logo.png" alt="Orc" className="w-16 h-16 rounded-2xl mx-auto mb-4 shadow-lg" />
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900">
               {isLogin ? "Selamat Datang" : "Buat Akun Baru"}
             </h1>
             <p className="text-slate-500 text-sm mt-2">
               {isLogin
                 ? "Login untuk mulai memendekkan URL"
-                : "Daftar gratis dan mulai gunakan CLIPO"}
+                : "Daftar gratis dan mulai gunakan Orc"}
             </p>
           </div>
 
@@ -968,8 +967,8 @@ function AuthForm({ onBack, initialView = "login" }: { onBack: () => void; initi
       <footer className="border-t bg-white mt-auto">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4">
           <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
-            <img src="/clipo-logo.png" alt="CLIPO" className="w-4 h-4 rounded" />
-            <span>&copy; {new Date().getFullYear()} CLIPO &mdash; Pemendek URL Cepat & Gratis</span>
+            <img src="/orc-logo.png" alt="Orc" className="w-4 h-4 rounded" />
+            <span>&copy; {new Date().getFullYear()} Orc &mdash; Pemendek URL Cepat & Gratis</span>
           </div>
         </div>
       </footer>
@@ -994,6 +993,8 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
   const [editCode, setEditCode] = useState("");
   const [editError, setEditError] = useState("");
   const [isEditing, setIsEditing] = useState(false);
+  const [qrTarget, setQrTarget] = useState<ShortLink | null>(null);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const { toast } = useToast();
 
   const fetchLinks = useCallback(async () => {
@@ -1078,6 +1079,31 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
       toast({
         title: "Gagal menyalin",
         description: "Browser tidak mendukung clipboard.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDownloadQr = async (shortUrl: string, shortCode: string) => {
+    try {
+      const dataUrl = await QRCode.toDataURL(shortUrl, {
+        width: 512,
+        margin: 2,
+        color: { dark: "#1e293b", light: "#ffffff" },
+        errorCorrectionLevel: "H",
+      });
+      const link = document.createElement("a");
+      link.download = `orc-${shortCode}.png`;
+      link.href = dataUrl;
+      link.click();
+      toast({
+        title: "QR Code berhasil diunduh!",
+        description: "File PNG telah tersimpan.",
+      });
+    } catch {
+      toast({
+        title: "Gagal mengunduh",
+        description: "Terjadi kesalahan saat membuat QR Code.",
         variant: "destructive",
       });
     }
@@ -1201,9 +1227,9 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
       <header className="border-b bg-white/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src="/clipo-logo.png" alt="CLIPO" className="w-8 h-8 rounded-lg" />
-            <span className="font-bold text-lg tracking-tight">
-              CLIPO
+            <img src="/orc-logo.png" alt="Orc" className="w-8 h-8 rounded-lg" />
+            <span className="font-black text-xl tracking-tighter uppercase">
+              Orc
             </span>
           </div>
           <div className="flex items-center gap-3">
@@ -1219,7 +1245,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
               variant="ghost"
               size="sm"
               className="text-slate-400 hover:text-red-500 h-8"
-              onClick={() => signOut({ callbackUrl: "/" })}
+              onClick={() => setShowLogoutConfirm(true)}
             >
               <LogOut className="w-4 h-4" />
               <span className="hidden sm:inline ml-1.5">Keluar</span>
@@ -1243,7 +1269,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
                 <Sparkles className="w-3 h-3 mr-1" />
                 Cepat, Gratis, dan Mudah
               </Badge>
-              <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 mb-3">
+              <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mb-3">
                 Pemendek URL{" "}
                 <span className="bg-gradient-to-r from-violet-600 to-teal-500 bg-clip-text text-transparent">
                   Terpercaya
@@ -1483,6 +1509,15 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
                               <Button
                                 size="sm"
                                 variant="ghost"
+                                className="h-8 w-8 p-0 hover:bg-violet-50 hover:text-violet-600 text-slate-400 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                                onClick={() => setQrTarget(link)}
+                                title="QR Code"
+                              >
+                                <QrCode className="w-3.5 h-3.5" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
                                 className="h-8 w-8 p-0 hover:bg-amber-50 hover:text-amber-600 text-slate-400 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                                 onClick={() => openEdit(link)}
                                 title="Edit short code"
@@ -1530,12 +1565,12 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400">
             <div className="flex items-center gap-2">
-              <img src="/clipo-logo.png" alt="CLIPO" className="w-5 h-5 rounded" />
+              <img src="/orc-logo.png" alt="Orc" className="w-5 h-5 rounded" />
               <span className="font-semibold text-slate-500">
-                CLIPO
+                Orc
               </span>
             </div>
-            <p>&copy; {new Date().getFullYear()} CLIPO &mdash; Pemendek URL Cepat & Gratis</p>
+            <p>&copy; {new Date().getFullYear()} Orc &mdash; Pemendek URL Cepat & Gratis</p>
           </div>
         </div>
       </footer>
@@ -1652,6 +1687,70 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* QR Code Dialog */}
+      <Dialog open={!!qrTarget} onOpenChange={(open) => !open && setQrTarget(null)}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <QrCode className="w-4 h-4 text-violet-600" />
+              QR Code
+            </DialogTitle>
+            <DialogDescription>
+              Scan QR code untuk membuka link pendek ini.
+            </DialogDescription>
+          </DialogHeader>
+          {qrTarget && (
+            <div className="flex flex-col items-center gap-4 py-4">
+              <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+                <QRCodeSVG
+                  value={qrTarget.shortUrl}
+                  size={200}
+                  level="H"
+                  includeMargin={false}
+                  bgColor="#ffffff"
+                  fgColor="#1e293b"
+                />
+              </div>
+              <p className="text-sm font-mono font-semibold text-violet-600 break-all text-center">
+                {qrTarget.shortUrl}
+              </p>
+              <Button
+                onClick={() => handleDownloadQr(qrTarget.shortUrl, qrTarget.shortCode)}
+                className="w-full bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-700 hover:to-violet-600 text-white"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Unduh QR Code (PNG)
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Logout Confirmation Dialog */}
+      <AlertDialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Keluar dari akun?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Kamu harus login kembali untuk mengakses dashboard.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                setShowLogoutConfirm(false);
+                await signOut({ redirect: false });
+                onLogout();
+              }}
+              className="bg-destructive text-white hover:bg-destructive/90"
+            >
+              Keluar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -1660,6 +1759,13 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
 export default function Home() {
   const { data: session, status } = useSession();
   const { path, navigate } = usePathRouter();
+
+  // Auto-redirect to dashboard if logged in but still on auth page
+  useEffect(() => {
+    if (session && (path === "login" || path === "register")) {
+      navigate("dashboard");
+    }
+  }, [session, path, navigate]);
 
   // Derive the active view from path + session state
   const activeView: PageView = useMemo(() => {

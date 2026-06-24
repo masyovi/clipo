@@ -3,8 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 // App routes that should serve the main page
 const APP_ROUTES = ["/login", "/register", "/dashboard"];
 
-// Short codes are nanoid: alphanumeric, no dashes/underscores, 6-12 chars
-const SHORT_CODE_REGEX = /^[A-Za-z0-9_-]{6,12}$/;
+// Short codes: alphanumeric, dash, underscore, 3-30 chars (nanoid + custom codes)
+const SHORT_CODE_REGEX = /^[A-Za-z0-9_-]{3,30}$/;
 
 const SKIP_PATHS = [
   "api",
