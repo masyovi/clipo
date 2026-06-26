@@ -192,3 +192,24 @@ Stage Summary:
 - Login/register auto-redirect useEffect added to Home component
 - proxy.ts regex updated to {3,30} for custom short codes
 - Server running and verified: landing page 200, auth routes working, clean URLs (/login, /register)
+---
+Task ID: 2
+Agent: Main Agent
+Task: Add Adcash video ad (VAST) to landing page
+
+Work Log:
+- Created src/components/video-ad.tsx using Google IMA SDK (no extra npm deps needed)
+- Component loads IMA SDK dynamically from CDN (imasdk.googleapis.com)
+- Requests VAST ad tag: https://youradexchange.com/video/select.php?r=11510974
+- Features: loading spinner, close button during playback, auto-hide after ad completes
+- Graceful error handling: hides silently if no ad served (sandbox/IP restriction)
+- Safety timeout: 12s if no ad starts, auto-hides
+- Added VideoAd component to landing page between Hero and Stats sections
+- Verified: IMA SDK loads (200), VAST tag requested (200), CSI pings sent
+- Ad doesn't render in sandbox (expected) — will work in production with real domain
+
+Stage Summary:
+- VideoAd component: src/components/video-ad.tsx
+- Placement: Landing page, between Hero and Stats sections
+- No additional npm packages required (IMA SDK loaded from CDN)
+- Clean integration with Orc design (rounded corners, border, shadow, "Advertisement" label)

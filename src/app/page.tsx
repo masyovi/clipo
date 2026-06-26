@@ -65,6 +65,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { VideoAd } from "@/components/video-ad";
 
 // ─── Types ───────────────────────────────────────────────────────
 interface ShortLink {
@@ -353,6 +354,9 @@ function LandingPage({ onAuth }: { onAuth: (v: AuthView) => void }) {
             </motion.div>
           </div>
         </section>
+
+        {/* Video Ad */}
+        <VideoAd />
 
         {/* Stats */}
         <section className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
